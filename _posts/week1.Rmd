@@ -29,7 +29,7 @@ library(leaflet)
 Import the data
 
 ```{r}
-ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv",
+ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/8d20c5b221b44d6f936d3aa06647bf3d13629687/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv",
                             header=T)
 ```
 

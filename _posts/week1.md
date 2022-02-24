@@ -17,32 +17,59 @@ questions in this week’s [assignment]().
 
 The simplest data is a table with coordinates (i.e. point data). For
 this assignment, we’ll work with malaria prevalence point data from
-Burkina Faso.
+Ethiopia. These data were downloaded from the Malaria Atlas Project data
+repository and were originally collected as part of [a
+study](https://link.springer.com/article/10.1186/1475-2875-10-25)
+conducted in 2009.
 
 First get the necessary libraries for this week
 
 ``` r
 library(sp)
 library(raster)
+```
+
+    ## Warning: package 'raster' was built under R version 4.1.2
+
+``` r
 library(rgdal)
 ```
+
+    ## Please note that rgdal will be retired by the end of 2023,
+    ## plan transition to sf/stars/terra functions using GDAL and PROJ
+    ## at your earliest convenience.
+    ## 
+    ## rgdal: version: 1.5-28, (SVN revision 1158)
+    ## Geospatial Data Abstraction Library extensions to R successfully loaded
+    ## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
+    ## Path to GDAL shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/gdal
+    ## GDAL binary built with GEOS: TRUE 
+    ## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
+    ## Path to PROJ shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
+    ## PROJ CDN enabled: FALSE
+    ## Linking to sp version:1.4-6
+    ## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
+    ## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.
+    ## Overwritten PROJ_LIB was /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
 
 ``` r
 library(leaflet)
 ```
 
+    ## Warning: package 'leaflet' was built under R version 4.1.2
+
 Import the data
 
 ``` r
-ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv",
+ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/8d20c5b221b44d6f936d3aa06647bf3d13629687/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv",
                             header=T)
 ```
 
 The columns should be self-explanatory, but briefly: \* examined =
-numbers tested \* pf\_pos = of those tested, how many were positive for
-Plasmodium falciparum malaria \* pf\_pr = Plasmodium falciparum parasite
+numbers tested \* pf_pos = of those tested, how many were positive for
+Plasmodium falciparum malaria \* pf_pr = Plasmodium falciparum parasite
 rate which is the same as infection prevalence or proportion infected
-(i.e. pf\_pos / examined) \* longitude = longitude of school in decimal
+(i.e. pf_pos / examined) \* longitude = longitude of school in decimal
 degrees \* latitude = latitude of schoolin decimal degrees
 
 ``` r
@@ -71,6 +98,20 @@ head(ETH_malaria_data)
     ## 4 0.000000000 Microscopy
     ## 5 0.000000000 Microscopy
     ## 6 0.004651163 Microscopy
+    ##                                                                                                                                title1
+    ## 1 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+    ## 2 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+    ## 3 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+    ## 4 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+    ## 5 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+    ## 6 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+    ##                                                                                                                                                                                                                                                                                               citation1
+    ## 1 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  <b>School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.</b> <i>Malaria Journal</i>, <b>10</b>(1):25
+    ## 2 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  <b>School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.</b> <i>Malaria Journal</i>, <b>10</b>(1):25
+    ## 3 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  <b>School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.</b> <i>Malaria Journal</i>, <b>10</b>(1):25
+    ## 4 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  <b>School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.</b> <i>Malaria Journal</i>, <b>10</b>(1):25
+    ## 5 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  <b>School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.</b> <i>Malaria Journal</i>, <b>10</b>(1):25
+    ## 6 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  <b>School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.</b> <i>Malaria Journal</i>, <b>10</b>(1):25
 
 ``` r
 # Create a histogram of the prevalence
@@ -94,8 +135,7 @@ plot(ETH_malaria_data$longitude, ETH_malaria_data$latitude,
 
 You might want to vary the size of the circle as a function of a
 variable. For example, if we wanted to plot points with size relative to
-prevalence we can use the expansion argument
-`cex`
+prevalence we can use the expansion argument `cex`
 
 ``` r
 # Use the cex function to plot circle size as a function of a variable. In this case prevalence. As the values are very small we can multiply by an arbitrary amount for visualization purposes
@@ -115,10 +155,10 @@ work with and is often a requirement for other functions. The
 allows you to put your data into specific spatial objects, such as
 `SpatialPoints` or `SpatialPolygons`. In addition, if your data are more
 than just the geometry, i.e. if you have data associated with each
-spatial feature, you can create spatial DataFrames, i.e.
-`SpatialPointsDataFrames` and `SpatialPolygonsDataFrames`. For example,
-if we wanted to create a SpatalPointsDataFrame using the Burkina Faso
-data:
+spatial feature, you can create spatial DataFrames,
+i.e. `SpatialPointsDataFrames` and `SpatialPolygonsDataFrames`. For
+example, if we wanted to create a SpatalPointsDataFrame using the
+Ethiopia data:
 
 ``` r
 ETH_malaria_data_SPDF <- SpatialPointsDataFrame(coords = ETH_malaria_data[,c("longitude", "latitude")],
@@ -132,7 +172,7 @@ ETH_malaria_data_SPDF
     ## class       : SpatialPointsDataFrame 
     ## features    : 203 
     ## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
-    ## crs         : +init=epsg:4326 +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
+    ## crs         : +proj=longlat +datum=WGS84 +no_defs 
     ## variables   : 3
     ## names       : examined, pf_pos,       pf_pr 
     ## min values  :       37,      0,           0 
@@ -186,7 +226,7 @@ spplot(ETH_malaria_data_SPDF, zcol = "pf_pr")
 Let’s have a look at SpatialPolygonsDataFrames. To load a polygon
 shapefile (or other file types), you can use the `readOGR` function from
 the `rgdal` package. For example, if you wanted to load in the province
-boundaries for Burkina Faso shapefile `ETH_Adm_1` from the
+boundaries for Ethiopia shapefile `ETH_Adm_1` from the
 `ETH_Adm_1_shapefile` folder on
 [GitHub](https://github.com/HughSt/HughSt.github.io/tree/master/course_materials/week1/Lab_files/Data/ETH_Adm_1_shapefile),
 assuming you have downloaded the folder of files you would use the
@@ -201,7 +241,7 @@ also have a `getData` function, so to specify that you want to use the
 code
 
 ``` r
-# You first need the ISO3 codes for the country of interest. You can access these using `ccodes()`. For Burkina Faso, the ISO3 is BFA.
+# You first need the ISO3 codes for the country of interest. You can access these using `ccodes()`. For Ethiopia, the ISO3 is ETH
 
 # The getData function then allows you to retrieve the relevant admin level boundaries from GADM.
 ETH_Adm_1 <- raster::getData("GADM", country="ETH", level=1) 
@@ -225,43 +265,34 @@ points(ETH_malaria_data$longitude, ETH_malaria_data$latitude,
 Rather than just relying on R base graphics, we can easily create
 webmaps using the `leaflet` package. There are many basemaps available.
 See [here](https://leaflet-extras.github.io/leaflet-providers/preview/).
-For any map, identify the Provider name, e.g. “OpenStreetMap.Mapnik”, by
+For any map, identify the Provider name, e.g. “OpenStreetMap.Mapnik”, by
 clicking on the map.
 
     # Define your basemap
     basemap <- leaflet() %>% addTiles()
     basemap
-    
-![](week1_files/figure-gfm/leaflet1.png)<!-- -->
-    
+
     # Or choose another basemap
     basemap <- leaflet() %>% addProviderTiles("Esri.WorldImagery")
     basemap
-    
-![](week1_files/figure-gfm/leaflet_esri.png)<!-- -->
-    
+
     #Let's choose a simple one
     basemap <- leaflet() %>% addProviderTiles("CartoDB.Positron")
 
-You can use the ‘piping’ command %\>% to add layers. As our point and
+You can use the ‘piping’ command %>% to add layers. As our point and
 polygon data are already ‘Spatial’ object this is easy
 
     basemap %>% addPolygons(data=ETH_Adm_1)
-    
-![](week1_files/figure-gfm/leaflet_admin1.png)<!-- -->
+
 
     # to change the colors/line weight
     basemap %>% addPolygons(data=ETH_Adm_1, color = "red", 
                             weight = 1, fillOpacity = 0.2)
-                            
-![](week1_files/figure-gfm/leaflet_admin1_red.png)<!-- -->
-    
+
     #You can also add popups
     basemap %>% addPolygons(data=ETH_Adm_1, 
                             popup = ETH_Adm_1$NAME_1)
-                            
-![](week1_files/figure-gfm/leaflet_admin1_popup.png)<!-- -->
-    
+
     # If you want to add points as well
     basemap %>% addPolygons(data=ETH_Adm_1, weight = 2,
                             popup = ETH_Adm_1$NAME_1) %>%
@@ -269,21 +300,19 @@ polygon data are already ‘Spatial’ object this is easy
                 addCircleMarkers(data=ETH_malaria_data_SPDF,
                                  color="red", radius = 2)
 
-![](week1_files/figure-gfm/leaflet_admin1_points.png)<!-- -->
-
-The leaflet package also has some nice functions for generating color
+The leaflet package also has some nice functions for generate color
 palettes that map to a variable you want to display. For example, if we
 wanted to create a color ramp relative to prevalence we could use the
-`colorNumeric` function. See ?colorNumeric for other ways to build
-color palettes.
+`colorQuantile` function. See ?colorQuantile for other ways to build
+color palettes such as `colorNumeric`
 
     library(wesanderson) # for a nice color palette
     colorPal <- colorNumeric(wes_palette("Zissou1")[1:5], ETH_malaria_data_SPDF$pf_pr, n = 5)
-    
+
     # colorPal is now a function you can apply to get the corresponding
     # color for a value
     colorPal(0.1)
-    
+
     basemap %>% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
                             popup = ETH_Adm_1$NAME_1,
                             color = "gray") %>%
@@ -292,8 +321,6 @@ color palettes.
                        color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
                        radius = 2,
                        popup = as.character(ETH_malaria_data_SPDF$pf_pr))
-
-![](week1_files/figure-gfm/leaflet_admin1_points_wes.png)<!-- -->
 
 You might want to add a legend. This just goes on as another layer on
 the map. First define the labels. In this case, we are using quintiles.
@@ -309,9 +336,7 @@ the map. First define the labels. In this case, we are using quintiles.
       
       addLegend(pal = colorPal, 
                 title = "Prevalence",
-                values = ETH_malaria_data_SPDF$pf_pr)
-
-![](week1_files/figure-gfm/leaflet_admin_quintile_popup.png)<!-- -->
+                values = ETH_malaria_data_SPDF$pf_pr )
 
 For more complex popups, you can define the HTML
 
@@ -324,23 +349,24 @@ For more complex popups, you can define the HTML
                        radius = 2,
                        popup = paste("<p>","Prevalence:",
                                      round(ETH_malaria_data_SPDF$pf_pr,2),
-                                     "<p>"))
-
-![](week1_files/figure-gfm/leaflet_admin_quintile_popup2.png)<!-- -->
+                                     "<p>")) %>%
+                                     
+     addLegend(pal = colorPal, 
+                title = "Prevalence",
+                values = ETH_malaria_data_SPDF$pf_pr )
 
 # Plotting raster data
 
 If you have a local raster file (e.g. a .tif file), you can use the
 `raster` command to load the file into R. For example, if you download
 the
-[“elev\_ETH.tif”](https://github.com/HughSt/HughSt.github.io/blob/master/course_materials/week1/Lab_files/Data/elev_ETH.tif?raw=true)
+[“elev_ETH.tif”](https://github.com/HughSt/HughSt.github.io/blob/master/course_materials/week1/Lab_files/Data/elev_ETH.tif?raw=true)
 file from this week’s data, you would use the following to load from a
 local source:
 
     elev <- raster("elev_ETH.tif")
 
-You can also load using a URL,
-    e.g.
+You can also load using a URL, e.g.
 
     elev <- raster("https://github.com/HughSt/HughSt.github.io/blob/master/course_materials/week1/Lab_files/Data/elev_ETH.tif?raw=true")
 
@@ -357,8 +383,8 @@ elev
     ## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
     ## resolution : 0.008333333, 0.008333333  (x, y)
     ## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
-    ## crs        : +proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0 
-    ## source     : /Users/sturrockh/Documents/Work/MEI/DiSARM/GitRepos/spatial-epi-course/_posts/ETH_msk_alt.grd 
+    ## crs        : +proj=longlat +datum=WGS84 +no_defs 
+    ## source     : ETH_msk_alt.grd 
     ## names      : ETH_msk_alt 
     ## values     : -189, 4420  (min, max)
 
@@ -374,18 +400,14 @@ Alternatively, you can use leaflet
 
     basemap %>% addRasterImage(elev)
 
-![](week1_files/figure-gfm/leaflet_raster.png)<!-- -->
-
 If you want to add a legend, you have to define the color palette first
 
     # Define palette
     raster_colorPal <- colorNumeric(topo.colors(64), values(elev), na.color = NA)
-    
+
     # Plot
     basemap %>% addRasterImage(elev, color = raster_colorPal) %>%
     addLegend(values = values(elev), pal = raster_colorPal)
-
-![](week1_files/figure-gfm/leaflet_raster_topo.png)<!-- -->
 
 If you want to export the data, there are several options.
 
@@ -394,7 +416,7 @@ If you want to export the data, there are several options.
 
 2.  Save as kml for someone to open in Google Earth
 
-<!-- end list -->
+<!-- -->
 
     library(plotKML)
     plotKML(ETH_malaria_data_SPDF) # see ?plotKML for more options
