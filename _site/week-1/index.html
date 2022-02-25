@@ -160,7 +160,7 @@ degrees * latitude = latitude of schoolin decimal degrees</p>
 </span><span class="n">hist</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="p">,</span><span class="w"> </span><span class="n">breaks</span><span class="o">=</span><span class="m">20</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-3-1.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-3-1.png" alt="" /></p>
 
 <h1 id="plotting-and-mapping-spatial-data">Plotting and mapping spatial data</h1>
 
@@ -172,7 +172,7 @@ of the points alone</p>
      </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">)</span><span class="w"> </span><span class="c1">#boring!</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-4-1.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-4-1.png" alt="" /></p>
 
 <p>You might want to vary the size of the circle as a function of a
 variable. For example, if we wanted to plot points with size relative to
@@ -184,7 +184,7 @@ prevalence we can use the expansion argument <code class="language-plaintext hig
      </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-5-1.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-5-1.png" alt="" /></p>
 
 <h2 id="working-with-spatial-objects">Working with ‘Spatial’ objects</h2>
 
@@ -254,12 +254,12 @@ Ethiopia data:</p>
 </span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-6-1.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-6-1.png" alt="" /></p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">spplot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">zcol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-6-2.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-6-2.png" alt="" /></p>
 
 <p>Let’s have a look at SpatialPolygonsDataFrames. To load a polygon
 shapefile (or other file types), you can use the <code class="language-plaintext highlighter-rouge">readOGR</code> function from
@@ -295,7 +295,7 @@ code</p>
      </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-8-1.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-8-1.png" alt="" /></p>
 
 <h1 id="plotting-data-using-web-maps">Plotting data using web maps</h1>
 
@@ -437,7 +437,7 @@ get hold of elevation for Ethiopia, use the following</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">elev</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/unnamed-chunk-10-1.png" alt="" /></p>
+<p><img src="../images/week-1/unnamed-chunk-10-1.png" alt="" /></p>
 
 <p>Alternatively, you can use leaflet</p>
 
