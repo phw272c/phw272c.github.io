@@ -19,8 +19,6 @@ description: >- # this means to ignore newlines until "baseurl:"
   a course at UC Berkeley's School of Public Health.
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "https://phw272c.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: 
-github_username: 
 
 # Build settings
 markdown: kramdown

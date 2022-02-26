@@ -4,15 +4,36 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](https://jekyllrb.com/)
+{{site.description}}
 
-You can find the source code for Minima at GitHub:
-[jekyll][jekyll-organization] /
-[minima](https://github.com/jekyll/minima)
+These labs have been developed over the years by several contributors:
 
-You can find the source code for Jekyll at GitHub:
-[jekyll][jekyll-organization] /
-[jekyll](https://github.com/jekyll/jekyll)
+![alt text](../images/about/hugh.png "Hugh Sturrock"){:style="width:170px; float:left; padding-right:15px;"}
 
+### Hugh Sturrock
 
-[jekyll-organization]: https://github.com/jekyll
+Hugh Sturrock is an Associate Professor of Epidemiology and Biostatistics at UCSF and is a spatial epidemiologist who's work focuses on tropical diseases.
+
+<br clear="left"/>
+
+![alt text](../images/about/adam.jpg "Adam Bennett"){:style="width:170px; float:left; padding-right:15px;"}
+
+### Adam Bennett
+
+Adam Bennett is an Associate Professor of Epidemiology and Biostatistics at UCSF and is a spatial epidemiologist with a focus on malaria surveillance.
+
+<br clear="left"/>
+
+![alt text](../images/about/francois.jpg "Francois Rerolle"){:style="width:170px; float:left; padding-right:15px;"}
+
+### Francois Rerolle
+
+Francois Rerolle is a PhD student in the department of Epidemiology and Biostatistics at UCSF, studying the epidemiology of malaria in high risk population in south-east Asia.
+
+<br clear="left"/>
+
+![alt text](../images/about/amanda.jpg "Amanda Irish"){:style="width:170px; float:left; padding-right:15px;"}
+
+### Amanda Irish
+
+Amanda Irish is a PhD student in the department of Epidemiology and Biostatistics at UCSF, studying the relationship between housing and malaria using remotely sensed satellite imagery. 
