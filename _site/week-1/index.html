@@ -7,8 +7,8 @@
 <meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Week 1 - Visualizing spatial data" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. A more complete walkthrough of this code can be seen in this video. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
-<meta property="og:description" content="Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. A more complete walkthrough of this code can be seen in this video. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
+<meta name="description" content="Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
+<meta property="og:description" content="Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
 <link rel="canonical" href="http://localhost:4000/week-1/" />
 <meta property="og:url" content="http://localhost:4000/week-1/" />
 <meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Week 1 - Visualizing spatial data" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-24T00:00:00-08:00","datePublished":"2022-02-24T00:00:00-08:00","description":"Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. A more complete walkthrough of this code can be seen in this video. You will then have a chance to apply that code to new data and questions in this week’s assignment.","headline":"Week 1 - Visualizing spatial data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-1/"},"url":"http://localhost:4000/week-1/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-24T00:00:00-08:00","datePublished":"2022-02-24T00:00:00-08:00","description":"Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment.","headline":"Week 1 - Visualizing spatial data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-1/"},"url":"http://localhost:4000/week-1/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
 <body>
@@ -34,11 +34,10 @@
 will be learning about the process of moving from visualizing spatial
 data through to exploration and analysis. We will get our hands dirty
 with some R code and learn how to make beautiful maps. This week’s
-<a href="">lecture</a> will focus on some of the concepts behind spatial
-epidemiology. The code below covers loading and visualizing spatial data
-in R. A more complete walkthrough of this code can be seen in <a href="">this
-video</a>. You will then have a chance to apply that code to new data and
-questions in this week’s <a href="">assignment</a>.</p>
+lecture will focus on some of the concepts behind spatial epidemiology.
+The code below covers loading and visualizing spatial data in R. You
+will then have a chance to apply that code to new data and questions in
+this week’s assignment.</p>
 
 <h2 id="lab-1-working-with-spatial-data-in-r">Lab 1: Working with Spatial Data in R</h2>
 
@@ -53,12 +52,7 @@ conducted in 2009.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: package 'raster' was built under R version 4.1.2
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired by the end of 2023,
@@ -82,13 +76,9 @@ conducted in 2009.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: package 'leaflet' was built under R version 4.1.2
-</code></pre></div></div>
-
 <p>Import the data</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/8d20c5b221b44d6f936d3aa06647bf3d13629687/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w">
-                            </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/8d20c5b221b44d6f936d3aa06647bf3d13629687/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p>The columns should be self-explanatory, but briefly: * examined =
