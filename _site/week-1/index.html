@@ -78,7 +78,7 @@ conducted in 2009.</p>
 
 <p>Import the data</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/8d20c5b221b44d6f936d3aa06647bf3d13629687/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p>The columns should be self-explanatory, but briefly: * examined =
@@ -239,7 +239,7 @@ shapefile (or other file types), you can use the <code class="language-plaintext
 the <code class="language-plaintext highlighter-rouge">rgdal</code> package. For example, if you wanted to load in the province
 boundaries for Ethiopia shapefile <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> from the
 <code class="language-plaintext highlighter-rouge">ETH_Adm_1_shapefile</code> folder on
-<a href="https://github.com/HughSt/HughSt.github.io/tree/master/course_materials/week1/Lab_files/Data/ETH_Adm_1_shapefile">GitHub</a>,
+<a href="https://github.com/phw272c/phw272c.github.io/tree/master/data/ETH_Adm_1_shapefile">GitHub</a>,
 assuming you have downloaded the folder of files you would use the
 following command</p>
 
@@ -375,7 +375,7 @@ the map. First define the labels. In this case, we are using quintiles.</p>
 <p>If you have a local raster file (e.g. a .tif file), you can use the
 <code class="language-plaintext highlighter-rouge">raster</code> command to load the file into R. For example, if you download
 the
-<a href="https://github.com/HughSt/HughSt.github.io/blob/master/course_materials/week1/Lab_files/Data/elev_ETH.tif?raw=true">“elev_ETH.tif”</a>
+<a href="https://github.com/phw272c/phw272c.github.io/blob/master/data/elev_ETH.tif?raw=true">“elev_ETH.tif”</a>
 file from this week’s data, you would use the following to load from a
 local source:</p>
 
@@ -384,7 +384,7 @@ local source:</p>
 
 <p>You can also load using a URL, e.g.</p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>elev &lt;- raster("https://github.com/HughSt/HughSt.github.io/blob/master/course_materials/week1/Lab_files/Data/elev_ETH.tif?raw=true")
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>elev &lt;- raster("https://github.com/phw272c/phw272c.github.io/blob/master/data/elev_ETH.tif?raw=true")
 </code></pre></div></div>
 
 <p>The <code class="language-plaintext highlighter-rouge">getData</code> functon from the <code class="language-plaintext highlighter-rouge">raster</code> package allows you to get hold
