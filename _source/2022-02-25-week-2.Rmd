@@ -185,7 +185,7 @@ give you back `Ca`
 For example `gsub(" ", "-", "CA USA")` would replace any whitespace with `-`,
 i.e. in this example it would return `CA-USA`.
 
-See <a href="https://github.com/HughSt/HughSt.github.io/blame/master/_posts/table_joins.R" target="_blank">here</a> for a worked example of table joins in R.
+See <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/table_joins.R" target="_blank">here</a> for a worked example of table joins in R.
 
 ### Pop quiz
 * Try generating the same plot using a different color palette.
@@ -203,7 +203,7 @@ ETH_elev <- raster::getData("alt", country="ETH")
 plot(ETH_elev)
 
 # Land use (# For information on land use classifications see http://due.esrin.esa.int/files/GLOBCOVER2009_Validation_Report_2.2.pdf)
-ETH_land_use <- raster("https://github.com/HughSt/HughSt.github.io/blob/master/course_materials/week2/Lab_files/ETH_land_use.tif?raw=true")
+ETH_land_use <- raster("https://github.com/phw272c/phw272c.github.io/blob/master/data/ETH_land_use.tif?raw=true")
 ETH_land_use
 
 #Plot the land use raster
@@ -221,7 +221,7 @@ Its good practice to resample rasters to the same extent and resolution
 rasters to each other. The `resample` command in the `raster` package
 makes this process easy. Here we are going to resample our land use raster,
 but for a deeper dive on resampling rasters of different data types,
-see <a href="https://github.com/HughSt/HughSt.github.io/blob/master/_posts/raster_resampling.md" target="_blank">here</a>. The default method is bilinear interpolation,
+see <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/raster_resampling.R" target="_blank">here</a>. The default method is bilinear interpolation,
 which doesn’t make sense for our categorical variable, so we should use
 the nearest neighbour function ‘ngb’
 
@@ -291,7 +291,7 @@ ggplot(ETH_malaria_data_SPDF@data) + geom_point(aes(elev, prevalence))
 
 You might also be interested in distances to/from other features (e.g. health facilities, water). Here we are going to load up a waterbody layer (obtained via http://www.diva-gis.org/Data) and calculate distance from each point. In this case, the file is in GeoJSON format instead of Shapefile. `readOGR` is able to handle GeoJSON easily. 
 ```{r}
-waterbodies <- readOGR("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week2/Lab_files/ETH_waterbodies.geojson")
+waterbodies <- readOGR("https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson")
 waterbodies
 plot(waterbodies)
 ```
