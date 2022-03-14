@@ -185,7 +185,7 @@ give you back `Ca`
 For example `gsub(" ", "-", "CA USA")` would replace any whitespace with `-`,
 i.e. in this example it would return `CA-USA`.
 
-See <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/table_joins.R" target="_blank">here</a> for a worked example of table joins in R.
+[Go here](https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/table_joins.R) for a worked example of table joins in R.
 
 ### Pop quiz
 * Try generating the same plot using a different color palette.
@@ -221,7 +221,7 @@ Its good practice to resample rasters to the same extent and resolution
 rasters to each other. The `resample` command in the `raster` package
 makes this process easy. Here we are going to resample our land use raster,
 but for a deeper dive on resampling rasters of different data types,
-see <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/raster_resampling.R" target="_blank">here</a>. The default method is bilinear interpolation,
+[go here](https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/raster_resampling.R). The default method is bilinear interpolation,
 which doesn’t make sense for our categorical variable, so we should use
 the nearest neighbour function ‘ngb’
 
@@ -353,4 +353,4 @@ ETH_malaria_data_SPDF$dist_to_water_point <- distGeo(ETH_malaria_data_SPDF@coord
 This week is all about practice. Instead of working through journal articles, have a play with your data and get to know how the functions work. 
 
 ## Pop quiz answers
-Can be found [here](https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week2/cheat_sheet_week2_2019.R)
+Can be found [here](https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/cheat_sheet_week2.R)
