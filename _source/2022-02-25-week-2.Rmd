@@ -75,7 +75,7 @@ Often, we have point and polygon data and wish to relate them. For example, we m
 
 ```{r}
 # Get the point prevalence data from the GitHub repo
-ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv",header=T)
+ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv",header=T)
 
 # Convert to a SPDF
 ETH_malaria_data_SPDF <- SpatialPointsDataFrame(coords = ETH_malaria_data[,c("longitude", "latitude")],
