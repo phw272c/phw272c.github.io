@@ -17,8 +17,8 @@ library(rgeos)
 
 
 BF_elev <- raster::getData("alt", country="BF")
-BF_land_use <- raster("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week2/Lab_files/BF_land_use.tif")
-pop <- raster("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week2/Assignment/BF_pop.tif")
+BF_land_use <- raster("https://github.com/phw272c/phw272c.github.io/raw/master/data/BF_land_use.tif")
+pop <- raster("https://github.com/phw272c/phw272c.github.io/raw/master/data/BF_pop.tif")
 
 
 # let's check out what's in these "things"called rasters
