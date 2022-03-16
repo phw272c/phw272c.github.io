@@ -148,7 +148,7 @@ leaflet() %>% addTiles("http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.p
 ## Interpolation of point (prevalence etc.) data
 First load Ethiopia malaria prevalence data
 ```{r}
-ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week1/Lab_files/Data/mal_data_eth_2009_no_dups.csv",header=T)
+ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv",header=T)
 ```
 
 Get the Ethiopia Adm 1 level boundary file using the raster package which provides access to GADM data

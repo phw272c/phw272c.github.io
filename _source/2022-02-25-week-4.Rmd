@@ -409,7 +409,7 @@ Spatial Scan Statistics
 
 Finally we will look at spatial scan statistics using R.
 
-On your own, you can also explore using SatScan, a free software tool for spatial scan statistics that you can find here and download: <http://www.satscan.org/>
+On your own, you can also explore using SatScan, a free software tool for spatial scan statistics that [you can find here](http://www.satscan.org/).
 
 For this exercise, we will use the "smacpod" library in R to run the Kulldorf spatial scan statistic.
 
@@ -445,7 +445,7 @@ Other good resources
 
 Waller LA, Gotway CA (2004) Applied Spatial Statistics for Public Health Data. John Wiley & Sons, Hoboken, New Jersey. 
 
-* R library rsatscan can be used to run SatScan from R, see also here: https://www.satscan.org/rsatscan/rsatscan.html 
+* R library rsatscan can be used to run SatScan from R, see also here: [rsatscan](https://www.satscan.org/rsatscan/rsatscan.html )
 
 Selection of research applications
 ----------------------------------
