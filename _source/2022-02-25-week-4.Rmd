@@ -65,7 +65,7 @@ We're going to load in some malaria data from Burkina Faso and visualize it usin
 
 ```{r}
 # Open BF malaria data
-BF_malaria_data <- read.csv("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week4/Lab_files/BF_malaria_data.csv",header=T)
+BF_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/BF_malaria_data.csv",header=T)
 BF_Adm_1 <- raster::getData("GADM", country="BFA", level=1)
 proj4string(BF_Adm_1) <- CRS('+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 ')
 
@@ -208,7 +208,7 @@ abline(v=0.15, col="red")
 We can now also take a look at running Moran's I for areal data (polygons), using a dataset on leukemia from New York (Turnbull et al 1990). We will also use these data later in the course in week 7.
 
 ```{r}
-nydata <- rgdal::readOGR("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week7/Lab_files/nydata.geojson")
+nydata <- rgdal::readOGR("https://github.com/phw272c/phw272c.github.io/raw/master/data/nydata.geojson")
 
 #lets take a look at the data
 head(nydata@data)
@@ -325,7 +325,7 @@ In this section we're going to look at a different type of point data, point pro
 First we are going to load obfuscated malaria case data from northern Namibia.
 
 ```{r}
-CaseControl<-read.csv("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week3/Lab_files/CaseControl.csv")
+CaseControl<-read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/CaseControl.csv")
 
 #  boundary file
 NAM_Adm0<-raster::getData('GADM',country='NAM',level=0)
