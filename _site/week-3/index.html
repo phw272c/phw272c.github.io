@@ -7,8 +7,8 @@
 <meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Week 3 - Spatial variation in risk" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="This week we are going to explore methods to understand and predict risk across space from point data. These may be point level data (i.e. measurements of something of interest at particular points) or point process data (i.e. occurences of events in a given area). When you load this week’s libraries, it may prompt you to download XQuartz" />
-<meta property="og:description" content="This week we are going to explore methods to understand and predict risk across space from point data. These may be point level data (i.e. measurements of something of interest at particular points) or point process data (i.e. occurences of events in a given area). When you load this week’s libraries, it may prompt you to download XQuartz" />
+<meta name="description" content="This week we are going to explore methods to understand and predict risk across space from point data. These may be point level data (i.e. measurements of something of interest at particular points) or point process data (i.e. occurrences of events in a given area). When you load this week’s libraries, it may prompt you to download XQuartz." />
+<meta property="og:description" content="This week we are going to explore methods to understand and predict risk across space from point data. These may be point level data (i.e. measurements of something of interest at particular points) or point process data (i.e. occurrences of events in a given area). When you load this week’s libraries, it may prompt you to download XQuartz." />
 <link rel="canonical" href="http://localhost:4000/week-3/" />
 <meta property="og:url" content="http://localhost:4000/week-3/" />
 <meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Week 3 - Spatial variation in risk" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-25T00:00:00-08:00","datePublished":"2022-02-25T00:00:00-08:00","description":"This week we are going to explore methods to understand and predict risk across space from point data. These may be point level data (i.e. measurements of something of interest at particular points) or point process data (i.e. occurences of events in a given area). When you load this week’s libraries, it may prompt you to download XQuartz","headline":"Week 3 - Spatial variation in risk","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-3/"},"url":"http://localhost:4000/week-3/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-25T00:00:00-08:00","datePublished":"2022-02-25T00:00:00-08:00","description":"This week we are going to explore methods to understand and predict risk across space from point data. These may be point level data (i.e. measurements of something of interest at particular points) or point process data (i.e. occurrences of events in a given area). When you load this week’s libraries, it may prompt you to download XQuartz.","headline":"Week 3 - Spatial variation in risk","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-3/"},"url":"http://localhost:4000/week-3/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
 <body>
@@ -33,9 +33,9 @@
     <p>This week we are going to explore methods to understand and predict risk
 across space from point data. These may be point level data
 (i.e. measurements of something of interest at particular points) or
-point process data (i.e. occurences of events in a given area). When you
-load this week’s libraries, it may prompt you to download
-<a href="https://www.xquartz.org/">XQuartz</a></p>
+point process data (i.e. occurrences of events in a given area). When
+you load this week’s libraries, it may prompt you to download
+<a href="https://www.xquartz.org/">XQuartz</a>.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">Metrics</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">spatstat</span><span class="p">)</span><span class="w">
@@ -46,6 +46,7 @@ load this week’s libraries, it may prompt you to download
 </span><span class="n">library</span><span class="p">(</span><span class="n">lme4</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">oro.nifti</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p>First load up some obfuscated malaria case-control data from Namibia.
@@ -65,7 +66,7 @@ This is comprised of latitudes and longitudes of cases and controls.</p>
 </code></pre></div></div>
 
 <p>To set ourselves up for further analyses, let’s create objects of just
-cases and just controls</p>
+cases and just controls.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#Create a new object with just the cases, recoded as a number 1</span><span class="w">
 </span><span class="n">Cases</span><span class="o">&lt;-</span><span class="n">CaseControl</span><span class="p">[</span><span class="n">CaseControl</span><span class="o">$</span><span class="n">case</span><span class="o">==</span><span class="m">1</span><span class="p">,]</span><span class="w">
@@ -81,13 +82,13 @@ case-control data</p>
                                            </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CaseControl</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"household_id"</span><span class="p">,</span><span class="w"> </span><span class="s2">"case"</span><span class="p">)])</span><span class="w">
 </span></code></pre></div></div>
 
-<p>And get hold of a boundary file for Namibia</p>
+<p>And get hold of a boundary file for Namibia.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s1">'GADM'</span><span class="p">,</span><span class="n">country</span><span class="o">=</span><span class="s1">'NAM'</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="m">0</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p>Let’s plot and see what we have. First, create a color scheme based on
-the case classification (0 or 1)</p>
+the case classification (0 or 1).</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">case_color_scheme</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s2">"blue"</span><span class="p">,</span><span class="w"> </span><span class="s2">"red"</span><span class="p">),</span><span class="w"> </span><span class="n">CaseControl_SPDF</span><span class="o">$</span><span class="n">case</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
@@ -105,12 +106,12 @@ the case classification (0 or 1)</p>
 
 <p>To generate a kernel density estimate, we first need to generate point
 pattern object of points (aka ppp). First, we need to define a window
-defining the population from which the cases arose</p>
+defining the population from which the cases arose.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Nam_Owin</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">owin</span><span class="p">(</span><span class="n">xrange</span><span class="o">=</span><span class="nf">range</span><span class="p">(</span><span class="n">CaseControl</span><span class="o">$</span><span class="n">long</span><span class="p">),</span><span class="n">yrange</span><span class="o">=</span><span class="nf">range</span><span class="p">(</span><span class="n">CaseControl</span><span class="o">$</span><span class="n">lat</span><span class="p">))</span><span class="w">
 </span></code></pre></div></div>
 
-<p>Now we can define the ppp object of the cases</p>
+<p>Now we can define the ppp object of the cases.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Cases_ppp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ppp</span><span class="p">(</span><span class="n">Cases</span><span class="o">$</span><span class="n">long</span><span class="p">,</span><span class="w"> </span><span class="n">Cases</span><span class="o">$</span><span class="n">lat</span><span class="p">,</span><span class="w"> </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Nam_Owin</span><span class="p">)</span><span class="w">
 </span><span class="n">plot</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">)</span><span class="w">
@@ -118,7 +119,7 @@ defining the population from which the cases arose</p>
 
 <p><img src="../images/week-3/unnamed-chunk-10-1.png" alt="" /></p>
 
-<p>We can now generate and plot a kernel density estimate of cases</p>
+<p>We can now generate and plot a kernel density estimate of cases.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">par</span><span class="p">(</span><span class="n">mar</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="nf">rep</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">4</span><span class="p">)))</span><span class="w">
 </span><span class="n">case_density</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">density</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">)</span><span class="w">
@@ -127,19 +128,21 @@ defining the population from which the cases arose</p>
 
 <p><img src="../images/week-3/unnamed-chunk-11-1.png" alt="" /></p>
 
-<p>Its possible to use different bandwidths. The larger the bandwidth, the
-smoother the density estimate.</p>
+<p>It’s possible to use different bandwidths. The larger the bandwidth, the
+smoother the density estimate. You can also automatically chose a
+bandwidth based on a variety of methods. Investigate <code class="language-plaintext highlighter-rouge">?bw.ppl</code> for more
+information.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">par</span><span class="p">(</span><span class="n">mfrow</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">3</span><span class="p">,</span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">))</span><span class="w">
 </span><span class="n">plot</span><span class="p">(</span><span class="n">density</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">,</span><span class="m">0.02</span><span class="p">),</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Bandwidth 0.02"</span><span class="p">)</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">density</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">,</span><span class="m">0.1</span><span class="p">),</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Bandwidth 0.02"</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">density</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">,</span><span class="m">0.1</span><span class="p">),</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Bandwidth 0.1"</span><span class="p">)</span><span class="w">
 </span><span class="n">plot</span><span class="p">(</span><span class="n">density</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">,</span><span class="n">bw.ppl</span><span class="p">),</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Automatically selected bandwidth"</span><span class="p">)</span><span class="w"> </span><span class="c1"># automatic bandwidth selection based on cross-validation</span><span class="w">
 </span></code></pre></div></div>
 
 <p><img src="../images/week-3/unnamed-chunk-12-1.png" alt="" /></p>
 
 <p>If you want to map using leaflet, you have to convert the density object
-to a rasterLayer with a coordinate reference system</p>
+to a rasterLayer with a coordinate reference system.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create raster</span><span class="w">
 </span><span class="n">density_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="p">(</span><span class="n">density</span><span class="p">(</span><span class="n">Cases_ppp</span><span class="p">,</span><span class="w"> </span><span class="n">bw.ppl</span><span class="p">))</span><span class="w">
@@ -151,20 +154,20 @@ to a rasterLayer with a coordinate reference system</p>
 
 <p><img src="../images/week-3/unnamed-chunk-13-1.png" alt="" /></p>
 
-<p>But this is just a density of cases, e.g. it doesn’t account for the
-denominator - the controls. To do this, we can use the kelsall &amp; diggle
-method, which calculates the ratio of the density estimate of
-cases:controls</p>
+<p>But this is just a density of cases, i.e. it doesn’t account for the
+denominator - the controls. To do this, we can use the Kelsall &amp; Diggle
+method (see paper in course notes), which calculates the ratio of the
+density estimate of cases:controls.</p>
 
 <p>First we have to add ‘marks’ to the points. Marks are just values
-associated with each point such as case or control (1/0)</p>
+associated with each point such as case or control (1/0).</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CaseControl_ppp</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ppp</span><span class="p">(</span><span class="n">CaseControl</span><span class="o">$</span><span class="n">long</span><span class="p">,</span><span class="w"> </span><span class="n">CaseControl</span><span class="o">$</span><span class="n">lat</span><span class="p">,</span><span class="w"> 
                        </span><span class="n">window</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Nam_Owin</span><span class="p">,</span><span class="w"> 
                        </span><span class="n">marks</span><span class="o">=</span><span class="n">as.factor</span><span class="p">(</span><span class="n">CaseControl</span><span class="o">$</span><span class="n">case</span><span class="p">))</span><span class="w">
 </span></code></pre></div></div>
 
-<p>Now we can use the <code class="language-plaintext highlighter-rouge">relrisk</code> function from the spatstat pakage to look
+<p>Now we can use the <code class="language-plaintext highlighter-rouge">relrisk</code> function from the spatstat package to look
 at the risk of being a case relative to the background population. In
 order to obtain an output of relative risk, we must specify relative =
 TRUE in the code line (the probability of being a case, relative to
@@ -208,11 +211,9 @@ controls. See <code class="language-plaintext highlighter-rouge">?bw.relrisk</co
   </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">risk_raster</span><span class="p">,</span><span class="w"> </span><span class="n">opacity</span><span class="o">=</span><span class="m">0.6</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pal</span><span class="p">)</span><span class="w"> 
 </span></code></pre></div></div>
 
-<p><img src="../images/week-3/unnamed-chunk-19-1.png" alt="" /></p>
-
-<h2 id="interpolation-of-point-prevalence-etc-data">Interpolation of point (prevalence etc.) data</h2>
-
-<p>First load Ethiopia malaria prevalence data</p>
+<p><img src="../images/week-3/unnamed-chunk-19-1.png" alt="" /> <code class="language-plaintext highlighter-rouge">&lt;br&gt;</code>{=html} ##
+Interpolation of point (prevalence etc.) data First load Ethiopia
+malaria prevalence data</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
@@ -223,12 +224,12 @@ which provides access to GADM data</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<h2 id="inverse-distance-weighting-idw">Inverse distance weighting (IDW)</h2>
+<h3 id="inverse-distance-weighting-idw">Inverse distance weighting (IDW)</h3>
 
 <p>Inverse distance weighting is one method of interpolation. To perform
-IDW using the spatstat package, as per kernel density estimates, we have
-to create a ppp object with the outcome we wish to interpolate as marks.
-We have to start by setting the observation window. In this case, we are
+IDW using the spatstat package, per kernel density estimates, we have to
+create a ppp object with the outcome we wish to interpolate as marks. We
+have to start by setting the observation window. In this case, we are
 going to use the bounding box around Oromia State from which these data
 were collected. To set the window for the <code class="language-plaintext highlighter-rouge">ppp</code> function, we need to use
 the <code class="language-plaintext highlighter-rouge">owin</code> function.</p>
@@ -302,21 +303,19 @@ expected with optimal power</p>
   </span><span class="n">addLegend</span><span class="p">(</span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colPal</span><span class="p">,</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data_idw_raster</span><span class="p">[])</span><span class="w">
 </span></code></pre></div></div>
 
-<p><img src="../images/week-3/unnamed-chunk-28-1.png" alt="" /></p>
-
-<h2 id="kriging">Kriging</h2>
-
-<p>We are going to use the GeoR package to perform kriging. First, we have
+<p><img src="../images/week-3/unnamed-chunk-28-1.png" alt="" /> <code class="language-plaintext highlighter-rouge">&lt;br&gt;</code>{=html} ### Kriging
+We are going to use the GeoR package to perform kriging. First, we have
 to create a geodata object with the package GeoR. This wants dataframe
 of x,y and data</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_geo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.geodata</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="s2">"latitude"</span><span class="p">,</span><span class="s2">"pf_pr"</span><span class="p">)])</span><span class="w">
 </span></code></pre></div></div>
 
-<p>We can plot a summary plot using ther Lowes parameter. The Lowes option
-gives us lowes curves for the relationship between x and y</p>
+<p>We can plot a summary plot using the lowess option gives us LOWESS
+curves for the relationship between x and y. LOWESS stands for locally
+weighted scatterplot smoothing.</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data_geo</span><span class="p">,</span><span class="w"> </span><span class="n">lowes</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data_geo</span><span class="p">,</span><span class="w"> </span><span class="n">lowess</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p><img src="../images/week-3/unnamed-chunk-30-1.png" alt="" /></p>
@@ -324,8 +323,8 @@ gives us lowes curves for the relationship between x and y</p>
 <p>It’s important to assess whether there is a first order trend in the
 data before kriging. We can see from the plots of the prevalence against
 the x and y coordinates that there isn’t really any evidence of such a
-trend. Were there to be evidence, you can add <code class="language-plaintext highlighter-rouge">trend = 1st</code> or
-<code class="language-plaintext highlighter-rouge">trend = 2nd</code> to the plot command to see the result after havin
+trend. Were there to be evidence, you can add <code class="language-plaintext highlighter-rouge">trend = '1st'</code> or
+<code class="language-plaintext highlighter-rouge">trend = '2nd'</code> to the plot command to see the result after having
 regressed prevalence against x and y using a linear and polynomial
 effect respectively.</p>
 
@@ -343,9 +342,10 @@ to limit variogram estimation to half the maximum interpoint distance</p>
 </span></code></pre></div></div>
 
 <p><img src="../images/week-3/unnamed-chunk-31-1.png" alt="" /> To make it easier to
-interpret, we can bin points by distance</p>
+interpret, we can bin points by distance. You can specify
+<code class="language-plaintext highlighter-rouge">option = "bin"</code> but it’s the default so we left it out.</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Vario</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">variog</span><span class="p">(</span><span class="n">ETH_malaria_data_geo</span><span class="p">,</span><span class="w"> </span><span class="n">max.dist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MaxDist</span><span class="p">,</span><span class="w"> </span><span class="n">trend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"2nd"</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Vario</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">variog</span><span class="p">(</span><span class="n">ETH_malaria_data_geo</span><span class="p">,</span><span class="w"> </span><span class="n">max.dist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MaxDist</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## variog: computing omnidirectional variogram
@@ -356,10 +356,10 @@ interpret, we can bin points by distance</p>
 
 <p><img src="../images/week-3/unnamed-chunk-32-1.png" alt="" /></p>
 
-<p>Its possible to change the way the variogram bins are constructed. Just
+<p>It’s possible to change the way the variogram bins are constructed. Just
 be careful not to have too few pairs of points in any distance class.
-NB: <code class="language-plaintext highlighter-rouge">uvec</code> agrument provides values to define the variogram binning (ie
-let’s try bins of 0.2 decimal degrees, about 22 km)</p>
+NB: <code class="language-plaintext highlighter-rouge">uvec</code> argument provides values to define the variogram binning
+(e.g. let’s try bins of 0.2 decimal degrees, about 22 km).</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Vario</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">variog</span><span class="p">(</span><span class="n">ETH_malaria_data_geo</span><span class="p">,</span><span class="n">max.dist</span><span class="o">=</span><span class="n">MaxDist</span><span class="p">,</span><span class="n">uvec</span><span class="o">=</span><span class="n">seq</span><span class="p">(</span><span class="m">0.01</span><span class="p">,</span><span class="n">MaxDist</span><span class="p">,</span><span class="m">0.2</span><span class="p">))</span><span class="w"> 
 </span></code></pre></div></div>
@@ -391,7 +391,7 @@ let’s try bins of 0.2 decimal degrees, about 22 km)</p>
 
 <p><img src="../images/week-3/unnamed-chunk-36-1.png" alt="" /></p>
 
-<p>We can now fit variogram model by minimized least sqaures using
+<p>We can now fit variogram model by minimized least squares using
 different covariance models. In this case we are just going to use a
 ‘spherical’ and ‘exponential’ model.</p>
 
@@ -438,7 +438,7 @@ different covariance models. In this case we are just going to use a
 
 <p><img src="../images/week-3/unnamed-chunk-38-1.png" alt="" /></p>
 
-<p>Get summaries of the fits</p>
+<p>Get summaries of the fits.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">summary</span><span class="p">(</span><span class="n">VarioMod_sph</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
@@ -559,7 +559,7 @@ get grid of points from the IDW example for comparison</p>
 ## krige.conv: Kriging performed using global neighbourhood
 </code></pre></div></div>
 
-<p>Visualize predictions</p>
+<p>Visualize predictions.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">image</span><span class="p">(</span><span class="n">KrigPred</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="n">heat.colors</span><span class="p">(</span><span class="m">50</span><span class="p">))</span><span class="w">
 </span></code></pre></div></div>
@@ -567,7 +567,7 @@ get grid of points from the IDW example for comparison</p>
 <p><img src="../images/week-3/unnamed-chunk-41-1.png" alt="" /></p>
 
 <p>If you want to create a raster of your predictions, you can use the
-<code class="language-plaintext highlighter-rouge">rasterFromXYZ</code> function</p>
+<code class="language-plaintext highlighter-rouge">rasterFromXYZ</code> function.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">KrigPred_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rasterFromXYZ</span><span class="p">(</span><span class="n">data.frame</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">pred_grid_x</span><span class="p">,</span><span class="w">
                                  </span><span class="n">y</span><span class="o">=</span><span class="n">pred_grid_y</span><span class="p">,</span><span class="w">
@@ -587,8 +587,8 @@ function. Two types of validation are possible: 1. leaving-on-out cross
 validation where each data location (all or a subset) is removed in turn
 and predicted using the remaining locations, for a given model. 2.
 External validation which can predict to locations outside of the
-dataset Here we will use the default leave-one-out xvalidation for all
-points</p>
+dataset. Here we will use the default leave-one-out cross validation for
+all points.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">xvalid_result</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">xvalid</span><span class="p">(</span><span class="n">ETH_malaria_data_geo</span><span class="p">,</span><span class="w"> </span><span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VarioMod_sph</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
@@ -607,15 +607,15 @@ points</p>
 
 <p><img src="../images/week-3/unnamed-chunk-43-1.png" alt="" /></p>
 
-<p>You might notice that some of the kriged values are &lt;0. As we are
-modeling probabilities this can’t be true. In these situations, it is
-possible to apply a transformation to your data before kriging and then
-back-transform results. One transformation useful for probabilities is
-the logit transform (used in logistic regression). The <code class="language-plaintext highlighter-rouge">logit</code> and
-<code class="language-plaintext highlighter-rouge">inv.logit</code> functions from the package <code class="language-plaintext highlighter-rouge">gtools</code> can be used for this.
-Note that it doesn’t work if you have 0 values as you can’t log(0). You
-can add a small amount to avoid this situation. The process would look
-like this</p>
+<p>You might notice that some of the kriged values are &lt;0. Since we are
+trying to modeling probabilities this can’t be true. In these
+situations, it is possible to apply a transformation to your data before
+kriging and then back-transform results. One transformation useful for
+probabilities is the logit transform (used in logistic regression). The
+<code class="language-plaintext highlighter-rouge">logit</code> and <code class="language-plaintext highlighter-rouge">inv.logit</code> functions from the package <code class="language-plaintext highlighter-rouge">gtools</code> can be used
+for this. Note that it doesn’t work if you have 0 values as you can’t
+log(0). You can add a small amount to avoid this situation. The process
+would look like this.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Add small amount to avoid zeros</span><span class="w">
 </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr_adj</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">0.001</span><span class="w">
