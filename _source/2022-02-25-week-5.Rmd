@@ -14,9 +14,7 @@ webshot::install_phantomjs()
 knitr::opts_chunk$set(fig.path = "../images/week-5/")
 ```
 
-***
-
-# 1. Introduction
+## Introduction
 
 Last week, we spoke about cluster analysis (week 4) to reveal noteworthy spatial patterns in the outcome data (health related events/measures) and ways to assess spatial autocorrelation. In week 3 (Spatial variation in risk), we actually kind of already used spatial autocorrelation to interpolate the data and produce smooth maps of our outcomes.
 
@@ -24,15 +22,11 @@ Starting next week and till the end of the class, we will talk about spatial reg
 
 Today, in this transition session, we will cover some of the spatial data you can use in the regression modeling step.
 
-***
-
-# 2. Accessing spatial data
+## Accessing spatial data
 
 Many spatial data have been made directly available within R thanks to packages but for some data, you might need to look online.
 
-***
-
-### __From R packages__
+### From R packages
 ```{r, echo = TRUE, message = FALSE}
 # Load packages
 library(raster)
@@ -78,9 +72,8 @@ leaflet() %>% # Plot
   # I can't figure out why this ^ isn't working
 ```
 
-***
 
-### __Make sure you get what you want__
+### Make sure you get what you want
 
 Need to correctly specify 'country' option:
 
@@ -137,7 +130,7 @@ ETH_prec_0.5 <- raster::getData(name = "worldclim",
                             lat = 10)
 ```
 
-##### _Pop quiz: why do you think that is?_
+_Pop quiz: why do you think that is?_
 
 ```{r, message = FALSE, warning = FALSE}
 # Explore objects
@@ -189,7 +182,7 @@ leaflet() %>% # Plot
   hideGroup("South Sudan")
 ```
 
-##### _Pop quiz: how would you get the 0.5 resolution October precipitation for South Sudan?_
+_Pop quiz: how would you get the 0.5 resolution October precipitation for South Sudan?_
 
 ```{r, message = FALSE, warning = FALSE}
 # Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... Left half of South Sudan
@@ -233,7 +226,7 @@ leaflet() %>% # Plot
             pal = raster_colorPal_prec_SSD)
 ```
 
-##### _In class assignement: map the 1 (minute of a degree) resolution January precipitation for Kenya in inches?_
+_In class assignement: map the 1 (minute of a degree) resolution January precipitation for Kenya in inches?_
 
 ```{r, echo = FALSE, eval = FALSE}
 # Administrative boundaries (level 0)
@@ -291,9 +284,8 @@ leaflet() %>% # Plot
             pal = raster_colorPal_prec_KEN)
 ```
 
-***
 
-### __Other R packages__
+### Other R packages
 
 Here are a few R packages with spatial data available:
 
@@ -304,9 +296,8 @@ Here are a few R packages with spatial data available:
 * sentinel2
 * MODIS
 
-***
 
-### __Online__
+### On the web
 
 Often times those R packages simply get you an easier access to data hosted online by various research groups and can have useful additional functions to process the data. Sometimes though, no one has put the effort to package the data you are looking for or you might not know that it is already available in R. In those cases, you end up needing to download the data online (which can come in many different formats) and import in R yourself.
 
@@ -342,69 +333,14 @@ leaflet() %>% # Plot
   hideGroup("WorldClim.com download")
 
 # Another more elegant way to read in the data downloaded online
-wc2_prec_10 <- raster::stack(x = paste0(path_to_wc2_folder, "/wc2/", list.files(path = paste0(path_to_wc2_folder, "/wc2"), pattern = ".tif")))
+wc2_prec_10 <- raster::stack(x = paste0(path_to_wc2_folder, 
+                                        list.files(path = path_to_wc2_folder,
+                                                   pattern = ".tif")))
 wc2_prec_10
 wc2_prec_10[[10]]
 ```
 
-For instance, for my first dissertation paper, I was looking for deforestation data. I was familiar with the work from Hansen et al. [High-Resolution Global Maps of 21st-Century Forest Cover Change](https://science.sciencemag.org/content/342/6160/850) and there associated [website](https://earthenginepartners.appspot.com/science-2013-global-forest/download_v1.2.html). To download deforestation data over Lao PDR, you have to pick the appropriate tile (s), download, import and process in R.
-
-After reading the author's paper, supplementary materials and website instructions several times, I still couldn't make sense of their data. I eventually found a R package [gfcanalysis](http://azvoleff.com/articles/analyzing-forest-change-with-gfcanalysis/) designed specifically to analyze this dataset and started believing again! Althought it greatly helped me understand the raw data, I ended up not using the package because of simplifying assumptions they were making about the data. 
-
-##### _In class assignement: download Open Street Map data and plot main roads in Laos_
-
-```{r, eval = FALSE, echo = FALSE}
-### Many possible solutions, the point of the exercise being to have you struggle with accessing new data online/from R
-
-## Cheating solution 1:
-# Administrative boundaries (level 0)
-LAO_Adm_0 <- raster::getData(name = "GADM",
-                             country = "LAO",
-                             level = 0)
-
-leaflet() %>% # Plot
-  addProviderTiles("OpenStreetMap.Mapnik") %>%
-  addPolygons(data = LAO_Adm_0,
-              popup = LAO_Adm_0$NAME_0,
-              label = LAO_Adm_0$NAME_0,
-              fillOpacity = 0)
-
-
-
-## Solution 2:
-library(maptools)
-# Path to OSM folder you just downloaded
-path_to_OSM_folder <- "/Users/francoisrerolle/Downloads"
-
-LaosRoads <- rgdal::readOGR(dsn = paste0(path_to_OSM_folder,"/laos-latest-free"),
-                            layer = "gis_osm_roads_free_1")
-LaosRoadsPST <- LaosRoads[which(LaosRoads$fclass == "trunk" |
-                                LaosRoads$fclass =="trunk_link" |
-                                LaosRoads$fclass == "primary" |
-                                LaosRoads$fclass == "primary_link" |
-                                LaosRoads$fclass == "secondary" |
-                                LaosRoads$fclass == "secondary_link" |
-                                LaosRoads$fclass == "road" |
-                                LaosRoads$fclass == "tertiary" |
-                                LaosRoads$fclass == "tertiary_link"),]
-
-factpal <- colorFactor(palette = topo.colors(length(levels(LaosRoadsPST$fclass))), domain = levels(LaosRoadsPST$fclass)) # define color palette
-
-leaflet() %>% # Plot
-  addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(data = LAO_Adm_0,
-              popup = LAO_Adm_0$NAME_0,
-              label = LAO_Adm_0$NAME_0,
-              fillOpacity = 0,
-              color = "black") %>%
-  addPolylines(data = LaosRoadsPST,
-               color = ~factpal(fclass),
-               popup = ~fclass,
-               label = ~fclass)
-
-```
-
-### __Other online resources__
+### Other online resources
 
 Here are a few good websites with free downloadable spatial data
 
@@ -416,24 +352,9 @@ Here are a few good websites with free downloadable spatial data
 * [Malaria Atlas Project](https://map.ox.ac.uk)
 * [MODIS](https://modis.gsfc.nasa.gov)
 
-***
-***
+## Spatial data: where do they come from?
 
-# 2. Spatial data: where do they come from?
-
-### __Welcoming quizzes__
-
-##### _Pop quiz: how do you think the precipitation surface was produced?_
-
-Answer [here](https://www.chc.ucsb.edu/data/chirps).
-
-##### _Pop quiz: how do you think the altitude surface was produced?_
-
-Answer [here](https://gisgeography.com/srtm-shuttle-radar-topography-mission/).
-
-Now, remember the land use data from Burkina Faso and the water body data from Ethiopia, used in week 2?
-
-##### _Pop quiz: how do you think those surfaces were produced?_
+We often interact with climatic and environmental raster data, like the land use dataset shown below. But how are these datasets produced? The answer is via remotely sensed imagery, such as images taken by satellites, planes or drones. These data can sometimes be combined with ground data, such as data from weather stations.
 
 ```{r, warning = FALSE, message = FALSE}
 # Land use (# For information on land use classifications see http://due.esrin.esa.int/files/GLOBCOVER2009_Validation_Report_2.2.pdf)
@@ -443,17 +364,7 @@ plot(ETH_land_use)
 
 ![](../images/week-5/GlobalCover.png)
 
-```{r}
-waterbodies <- rgdal::readOGR("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week2/Lab_files/ETH_waterbodies.geojson")
-leaflet() %>% # Plot
-  addProviderTiles("CartoDB.Positron") %>%
-  addPolylines(data = waterbodies)
-
-```
-
-***
-
-### __Remote sensing data__
+### Remote sensing data
 
 ![](../images/week-5//NASA.png)
 
@@ -467,13 +378,13 @@ For instance the satellite Landsat-8 has 11 bands (i.e wavelengths ranges) at wh
 
 ```{r, warning = FALSE, message = FALSE}
 # Load some Etiophia Landsat data for the year 2017 (only 7 first bands available)
-Landsat_Band_1 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band1.tif")
-Landsat_Band_2 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band2.tif")
-Landsat_Band_3 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band3.tif")
-Landsat_Band_4 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band4.tif")
-Landsat_Band_5 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band5.tif")
-Landsat_Band_6 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band6.tif")
-Landsat_Band_7 <- raster::raster(x = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/Landsat/Landsat_2017_Band7.tif")
+Landsat_Band_1 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band1.tif?raw=true")
+Landsat_Band_2 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band2.tif?raw=true")
+Landsat_Band_3 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band3.tif?raw=true")
+Landsat_Band_4 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band4.tif?raw=true")
+Landsat_Band_5 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band5.tif?raw=true")
+Landsat_Band_6 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band6.tif?raw=true")
+Landsat_Band_7 <- raster::raster(x = "https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band7.tif?raw=true")
 
 # Stack together layers
 Landsat_Band <- raster::stack(Landsat_Band_1,
@@ -488,9 +399,8 @@ Landsat_Band <- raster::stack(Landsat_Band_1,
 summary(Landsat_Band[[1]])
 ```
 
-***
 
-### __How do you get from reflectance to land use surfaces?__
+### How do you get from reflectance to land use surfaces?
 
 First you can read some [documentation](https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research) about the wavelength ranges covered by band for your satellite.
 
@@ -506,7 +416,7 @@ plot(Landsat_Band_4, main = "Red", col = gray(0:100 / 100))
 plot(Landsat_Band_5, main = "NIR", col = gray(0:100 / 100))
 ```
 
-##### _Pop quiz: what do you think is in the top right corner of our spatial extent?_
+_Pop quiz: what do you think is in the top right corner of our spatial extent?_
 
 Notice the difference in shading and range of legends between the different bands. This is because different surface features reflect the incident solar radiation differently. Each layer represent how much incident solar radiation is reflected for a particular wavelength range. For example, vegetation reflects more energy in NIR than other wavelengths and thus appears brighter. In contrast, water absorbs most of the energy in the NIR wavelength and it appears dark.
 
@@ -532,9 +442,7 @@ raster::plotRGB(x = Landsat_Band,
                 main = "Landsat False Color Composite")
 ```
 
-***
-
-### __Relation between bands__
+### Relation between bands
 
 A scatterplot matrix can be helpful in exploring relationships between raster layers. This can be done with the pairs() function of the "raster" package.
 
@@ -552,9 +460,7 @@ raster::pairs(x = Landsat_Band[[4:5]], main = "Red versus NIR")
 
 The first plot reveals high correlations between the blue wavelength regions. Because of the high correlation, we can just use one of the blue bands without losing much information. The distribution of points in second plot (between NIR and red) is unique due to its triangular shape. Vegetation reflects more in the NIR range than in the red and creates the upper corner close to NIR (y) axis. Water absorbs energy from all the bands and occupies the location close to origin. The furthest corner is created due to highly reflecting surface features like bright soil or concrete.
 
-***
-
-### __Spectral profiles__
+### Spectral profiles
 
 A plot of the spectrum (all bands) for pixels representing a certain earth surface features (e.g. water) is known as a spectral profile. Such profiles demonstrate the differences in spectral properties of various earth surface features and constitute the basis for image analysis. 
 
@@ -562,7 +468,7 @@ Let's start by loading some training data from the region which compiles GPS coo
 
 ```{r}
 # Load the training dataset, which compiles GPS coordinates of points for which we know the Land use and Land cover (LULC) class
-Training_Data <- read.csv(file = "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week5/Lab_files/LULC_Training_Tana.csv", header = T)
+Training_Data <- read.csv(file = "https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/LULC_Training_Tana.csv", header = T)
 
 # Explore the data
 head(Training_Data)
@@ -600,19 +506,19 @@ library(tidyr)
 LULC_Mean_Reflectance_Long <- tidyr::gather(data = LULC_Mean_Reflectance,
                                             key = "Band",
                                             value = "Reflectance",
-                                            ... = - "LULC",
+                                            -"LULC",
                                             factor_key = T)
 
 # Plot
 library(ggplot2)
-ggplot2::ggplot(data = LULC_Mean_Reflectance_Long, mapping = aes(x = Band, y = Reflectance, color = LULC, group = LULC)) + geom_line()
+ggplot2::ggplot(data = LULC_Mean_Reflectance_Long, 
+                mapping = aes(x = Band, y = Reflectance, color = LULC, group = LULC)) +
+    geom_line()
 ```
 
 The spectral profiles show (dis)similarity in the reflectance of different features on the earth’s surface (or above it). ‘Water’ shows relatively low reflection in all wavelengths, while all other classes have relatively high reflectance in the longer wavelengts. Remember though that our training data only has 1000 points across 6 LULC classes only have a few observation for 3 of those classes.
 
-***
-
-### __Classification__
+### Classification
 
 So now let's try to predict LULC and produce our raster layer by fitting a classification model using the "randomForest" package.
 
@@ -647,18 +553,26 @@ leaflet() %>% # Plot
   addLayersControl(overlayGroups = c("Predicted LULC"))
 ```
 
-***
 
-### __Concluding remarks__
+## Concluding remarks
 
 Now you have a sense of how remote sensing can be used to produce all sort of environmental layers. The quality of those will depend on the spatial and temporal resolutions of the sensors as well as the techniques used to process the raw data (clouds?) and model it to produce more useful layers.
 
 ![](../images/week-5/Hagibis.jpg)
 
-***
-***
+### Resources
 
-# 3. Assignement
+This week borrows heavily from [this excellent tutorial](https://rspatial.org/rs/rs.pdf).
 
-Improve on the classification of the LULC above by including additional environmental variables (e.g, precipitation, temperature, distance to water bodies, elevation, ...) as predictors.
+### Readings
+
+Hay SI. An overview of remote sensing and geodesy for epidemiology and public health application. Advances in parasitology. 2000 Jan 1;47:1-35.
+
+Simoonga C, Utzinger J, Brooker S, Vounatsou P, Appleton CC, Stensgaard AS, Olsen A, Kristensen TK. Remote sensing, geographical information system and spatial analysis for schistosomiasis epidemiology and ecology in Africa. Parasitology. 2009 Nov;136(13):1683-93.
+
+Savory DJ, Andrade-Pacheco R, Gething PW, Midekisa A, Bennett A, Sturrock HJ. Intercalibration and Gaussian process modeling of nighttime lights imagery for measuring urbanization trends in Africa 2000–2013. Remote Sensing. 2017 Jul;9(7):713.
+
+Yang GJ, Vounatsou P, Xiao-Nong Z, Utzinger J, Tanner M. A review of geographic information system and remote sensing with applications to the epidemiology and control of schistosomiasis in China. Acta tropica. 2005 Nov 1;96(2-3):117-29.
+
+
 
