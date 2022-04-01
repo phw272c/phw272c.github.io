@@ -243,7 +243,7 @@ model is described as</p>
 <p>\(log(y_i) = \eta_i = \beta_0 + \beta_1 x_i\),</p>
 
 <p>where \(y_i\) is the amount of organic matter, \(x_i\) is the humidity
-level, and $\beta_0$ and \(\beta_1\) are parameters. To fit this model
+level, and \(\beta_0\) and \(\beta_1\) are parameters. To fit this model
 we can use the following command.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Fit GLM to toy dataset</span><span class="w">
@@ -342,30 +342,28 @@ covariance function. Under the right assumptions, we can also use the
 covariance function to describe the similarity of the observed values
 based on their location.</p>
 
-<p>A covariance function <em>K</em> : 𝕊 × 𝕊 → ℝ maps a pair of points
-<em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}1<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html} = (<em>s</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}\(1, 1\)<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}, <em>s</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}\(1, 2\)<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html})
-and
-<em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html} = (<em>s</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}\(2, 1\)<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}, <em>s</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}\(2, 2\)<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html})
-to the real line. We can define such a function in terms of the distance
-between a pair of points. Let the distance between the points be given
-by
-<em>r</em> = ∥<em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}1<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html} − <em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}∥,
-the following are examples of covarinace functions:</p>
+<p>A covariance function
+\(K : \mathbb{S} \ \times\ \mathbb{S}\ \rightarrow \ \mathbb{R}\) maps a
+pair of points \(z_1=(s_{[1,1]},s_{[1,2]})\) and
+\(z_2 = (s_{[2,1]},s_{[2,2]})\) to the real line. We can define such a
+function in terms of the distance between a pair of points. Let the
+distance between the points be given by \(r = ||z_1 -z_2||\), the
+following are examples of covariance functions:</p>
 
 <p>Exponentiated Quadratic:
-<em>K</em>(<em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}1<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}, <em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html})=<em>σ</em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}exp(−<em>r</em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}/<em>ρ</em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html})</p>
+\(K(z_1, z_2) = \sigma^2\text{exp}(r^2/\rho^2)\)</p>
 
 <p>Rational Quadratic:
-<em>K</em>(<em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}1<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}, <em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html})=<em>σ</em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}(1 + <em>r</em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}/(2*α**ρ<em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}))<code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}−</em>α*<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}</p>
+\(K(z_1, z_2) = \sigma^2(1+r^2/2\alpha\rho^2))^{-\alpha}\)</p>
 
 <p>Matern Covariance:
-<em>K</em>(<em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}1<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}, <em>z</em><code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html})=<em>σ</em><code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}2<code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}1 − <em>ν</em><code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}/<em>Γ</em>(<em>ν</em>)((2<em>ν</em>)<code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}.5<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}<em>r</em>/<em>ρ</em>)<code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}<em>ν</em><code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}𝒦<code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}<em>ν</em><code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html}((2<em>ν</em>)<code class="language-plaintext highlighter-rouge">&lt;sup&gt;</code>{=html}.5<code class="language-plaintext highlighter-rouge">&lt;/sup&gt;</code>{=html}<em>r</em>/<em>ρ</em>)</p>
+\(K(z_1, z_2) = \sigma^22^{1-\nu}/\Gamma(\nu)((2\nu)^{0.5}r/\rho)^{\nu}\mathcal{K}_{\nu}((2\nu)^{0.5}r/\rho)\)</p>
 
-<p>The quantities <em>ρ</em>, <em>α</em>, <em>ν</em> are parameters of the functions mentioned
-and 𝒦<code class="language-plaintext highlighter-rouge">&lt;sub&gt;</code>{=html}<em>ν</em><code class="language-plaintext highlighter-rouge">&lt;/sub&gt;</code>{=html} is the modified Bessel function of
+<p>The quantities \(\rho, \alpha, \nu\) are parameters of the functions
+mentioned and \(\mathcal{K}_{\nu}\) is the modified Bessel function of
 second kind. In the three cases, while less clear in the Matern case,
 the covariance decreases asymptotically towards zero the larger the
-value of <em>r</em>. This is the more distance between a pair of points, the
+value of \(r\). This is the more distance between a pair of points, the
 weaker the covariance between them.</p>
 
 <p>The election of which covariance function to use depends on our
@@ -420,9 +418,10 @@ below.</p>
 ## p_v(h) (marginal L): -1195.988
 </code></pre></div></div>
 
-<p><code class="language-plaintext highlighter-rouge">nu</code> (<em>ν</em>) represents the ‘smoothness’ parameter and <code class="language-plaintext highlighter-rouge">rho</code> (ρ) the scale
-parameter. <code class="language-plaintext highlighter-rouge">lambda</code> is the estimated variance in the random effect and
-<code class="language-plaintext highlighter-rouge">phi</code> the estimated variance in the residual error.</p>
+<p><code class="language-plaintext highlighter-rouge">nu</code> (\(\nu\)) represents the ‘smoothness’ parameter and <code class="language-plaintext highlighter-rouge">rho</code>
+(\(\rho\)) the scale parameter. <code class="language-plaintext highlighter-rouge">lambda</code> is the estimated variance in
+the random effect and <code class="language-plaintext highlighter-rouge">phi</code> the estimated variance in the residual
+error.</p>
 
 <p>In the next figure, we will show the spatial effect by predicting the
 values of organic matter across space with a fixed level of humidity.</p>
