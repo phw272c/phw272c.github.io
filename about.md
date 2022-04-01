@@ -12,7 +12,7 @@ This course has been developed over the years by many contributors:
 
 ## Hugh Sturrock
 
-Hugh Sturrock is an Associate Professor of Epidemiology and Biostatistics at UCSF and is a spatial epidemiologist who's work focuses on tropical diseases.
+Hugh Sturrock was previously an Associate Professor of Epidemiology and Biostatistics at UCSF and is now Chief Science Officer at [Locational](http://locational.io/).
 
 <br clear="left"/>
 
@@ -28,15 +28,15 @@ Adam Bennett is an Associate Professor of Epidemiology and Biostatistics at UCSF
 
 ## Francois Rerolle
 
-Francois Rerolle is a PhD student in the department of Epidemiology and Biostatistics at UCSF, studying the epidemiology of malaria in high risk population in south-east Asia.
+Francois Rerolle is a post-doc at the Proctor Foundation, UCSF. He received his PhD from the department of Epidemiology and Biostatistics at UCSF where he studied malaria in high-risk populations, within the Malaria Elimination Initiative.
 
 <br clear="left"/>
 
-![alt text](../images/about/amanda.jpg "Amanda Irish"){:style="width:170px; float:left; padding-right:15px;"}
+![alt text](../images/about/ricardo.png "Francois Rerolle"){:style="width:170px; float:left; padding-right:15px;"}
 
-## Amanda Irish
+## Ricardo Andrade
 
-Amanda Irish is a PhD student in the department of Epidemiology and Biostatistics at UCSF, studying the relationship between housing and malaria using remotely sensed satellite imagery. 
+Ricardo Andrade is a Statistician with experience in [Spatial Analysis and Bioinformatics](https://ric70x7.github.io/). During his time at UCSF he was a Research Specialist at the Institute for Global Health Sciences. 
 
 <br clear="left"/>
 
