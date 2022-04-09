@@ -19,7 +19,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   a course at UC Berkeley's School of Public Health.
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "https://phw272c.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
-author-credit: This course has been developed over the years by many contributors including Hugh Sturrock, Adam Bennett, Francois Rerolle, Amanda Irish, Adam Readhead, David Connell, and Erika Foster. <a href="/about">Read about the team</a>.
+author-credit: This course has been developed over the years by many contributors including Hugh Sturrock, Adam Bennett, Francois Rerolle, Ricardo Andrade, Adam Readhead, David Connell, and Erika Foster. <a href="/about">Read about the team</a>.
 
 # Build settings
 markdown: kramdown
