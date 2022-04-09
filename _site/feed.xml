@@ -1,4 +1,848 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-04-08T21:33:17-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Week 6 - Spatial Regression</title><link href="http://localhost:4000/week-6/" rel="alternate" type="text/html" title="Week 6 - Spatial Regression" /><published>2022-03-29T00:00:00-07:00</published><updated>2022-03-29T00:00:00-07:00</updated><id>http://localhost:4000/week-6</id><content type="html" xml:base="http://localhost:4000/week-6/"><![CDATA[<script type="text/javascript" id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
 
+<p>In this session we will introduce some concepts of spatial regression.
+We will focus on continuous spatial variation and see how to include it
+in a regression model. We will also discuss model selection using cross
+validation. The session is divided into the following sections:</p>
+
+<ul>
+  <li>Linear Regression Models</li>
+  <li>Spatial Covariance</li>
+  <li>Geostatistics</li>
+  <li>Cross-Validation</li>
+  <li>Application Example: Malaria Case</li>
+</ul>
+
+<p>Besides the code displayed here, we will use some additional code to
+generate some toy datasets that will help illustrate the exposition.
+Before starting we will load these code as well as the other required
+libraries, including ggplot2 which will be used for creating most of the
+images displayed.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: spam
+
+## Spam version 2.8-0 (2022-01-05) is loaded.
+## Type 'help( Spam)' or 'demo( spam)' for a short introduction 
+## and overview of this package.
+## Help for individual functions is also obtained by adding the
+## suffix '.spam' to the function name, e.g. 'help( chol.spam)'.
+
+## 
+## Attaching package: 'spam'
+
+## The following objects are masked from 'package:base':
+## 
+##     backsolve, forwardsolve
+
+## Loading required package: viridis
+
+## Loading required package: viridisLite
+
+## 
+## Try help(fields) to get started.
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: sp
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">spaMM</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Registered S3 methods overwritten by 'registry':
+##   method               from 
+##   print.registry_field proxy
+##   print.registry_entry proxy
+
+## spaMM (Rousset &amp; Ferdy, 2014, version 3.11.3) is loaded.
+## Type 'help(spaMM)' for a short introduction,
+## 'news(package='spaMM')' for news,
+## and 'citation('spaMM')' for proper citation.
+## Further infos, slides, etc. at https://gitlab.mbb.univ-montp2.fr/francois/spamm-ref.
+
+## 
+## Attaching package: 'spaMM'
+
+## The following object is masked from 'package:fields':
+## 
+##     Matern
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">source</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week6/Lab_files/R%20Files/background_functions.R"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="linear-regression-models">Linear Regression Models</h2>
+
+<h3 id="univariate-linear-model">Univariate Linear Model</h3>
+
+<p>As a first step we will do a recap on a <em>linear regression model</em>. In
+this problem we have a set of measurements of two variables, say \(X\)
+and \(Y\), and we try to explain the values of \(Y\) based on the values
+on \(X\). To do this we find the line that is the closest to all the
+points \((x, y)\).</p>
+
+<p>The command below generates a toy dataset that we will use as an
+example.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Generate example data</span><span class="w">
+</span><span class="n">dset1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">univariate_lm</span><span class="p">()</span><span class="w">
+
+</span><span class="c1"># Show data</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">dset1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##             x         y
+## 1 -0.38813740 -8.005137
+## 2  0.01616137 -7.917746
+## 3  0.40175907 -7.892104
+## 4  0.54888497 -8.061714
+## 5  0.97495187 -7.694279
+## 6  1.05565842 -7.741698
+</code></pre></div></div>
+
+<p>In <em>R</em> we can fit a linear model and make predictions with the comands
+shown next.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Fit linear model on dataset 1</span><span class="w">
+</span><span class="n">m1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lm</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dset1</span><span class="p">)</span><span class="w">
+</span><span class="n">m1_pred</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span><span class="w"> </span><span class="n">newdata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dset1</span><span class="p">,</span><span class="w"> </span><span class="n">interval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"confidence"</span><span class="p">)</span><span class="w">
+</span><span class="n">dset1</span><span class="o">$</span><span class="n">y_hat</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">m1_pred</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span><span class="w">
+</span><span class="n">dset1</span><span class="o">$</span><span class="n">y_lwr</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">m1_pred</span><span class="p">[,</span><span class="m">2</span><span class="p">]</span><span class="w">
+</span><span class="n">dset1</span><span class="o">$</span><span class="n">y_upr</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">m1_pred</span><span class="p">[,</span><span class="m">3</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/plt_lm-1.png" alt="" /></p>
+
+<h3 id="univariate-glm">Univariate GLM</h3>
+
+<p>While very useful, it is common that the model above turns out to be a
+not good assumption. Think of the case where \(Y\) is constrained to be
+positive. A straight line, unless it is horizontal, will cross the
+\(y\)-axis at some point. If the values of \(X\) where \(Y\) becomes
+negative are rare or they are a set of values we are not interested in,
+we may simply ignore them, however there are scenarios where we cannot
+afford having impossible values for \(Y\).</p>
+
+<p>As an example, we will load a second toy dataset and fit a liner
+regression model. Look at the bottom left corner of figure below. The
+predictions of \(Y\) are starting to cross the zero value and become
+negative, but the observed data remain positive.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Fit linear model on dataset 2</span><span class="w">
+</span><span class="n">dset2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">univariate_glm</span><span class="p">()</span><span class="w">
+</span><span class="n">m2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lm</span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dset2</span><span class="p">)</span><span class="w">
+</span><span class="n">m2_pred</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">m2</span><span class="p">,</span><span class="w"> </span><span class="n">newdata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dset1</span><span class="p">,</span><span class="w"> </span><span class="n">interval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"confidence"</span><span class="p">)</span><span class="w">
+</span><span class="n">dset2</span><span class="o">$</span><span class="n">y_hat</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">m2_pred</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span><span class="w">
+</span><span class="n">dset2</span><span class="o">$</span><span class="n">y_lwr</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">m2_pred</span><span class="p">[,</span><span class="m">2</span><span class="p">]</span><span class="w">
+</span><span class="n">dset2</span><span class="o">$</span><span class="n">y_upr</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">m2_pred</span><span class="p">[,</span><span class="m">3</span><span class="p">]</span><span class="w">
+
+</span><span class="n">ggplot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">subset</span><span class="p">(</span><span class="n">dset2</span><span class="p">),</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_point</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="s2">"steelblue"</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="o">=</span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_line</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y_hat</span><span class="p">),</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_ribbon</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">ymin</span><span class="o">=</span><span class="n">y_lwr</span><span class="p">,</span><span class="w"> </span><span class="n">ymax</span><span class="o">=</span><span class="n">y_upr</span><span class="p">),</span><span class="w"> </span><span class="n">fill</span><span class="o">=</span><span class="s2">"magenta"</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="o">=</span><span class="m">.25</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">theme</span><span class="p">(</span><span class="n">panel.grid.major</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">panel.grid.minor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> 
+        </span><span class="n">panel.background</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">axis.line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_line</span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"black"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/glm-1.png" alt="" /></p>
+
+<p>A solution to this problem is to use <em>generalized linear models</em> (GLM).
+A GLM uses a transformation on \(Y\) where the assumptions of the
+standard linear regression are valid (figure below), then it goes back
+to the original scale of \(Y\) and makes predictions.
+<img src="../images/week-6/plt_logit-1.png" alt="" /></p>
+
+<p>When fitting a GLM to the dataset shown in the second example above, the
+resulting predictions draw a curve that never reaches zero.
+<img src="../images/week-6/glm_quasibinomial-1.png" alt="" /></p>
+
+<h3 id="glm-with-spatially-structured-data">GLM with Spatially Structured Data</h3>
+
+<p>We will now move to a example of regression on spatial data. Say that we
+have a parcel of land where we are interested in quantifying the amount
+of organic matter. We take measurments at different locations randomly
+chosen, so that the locations can be any set of points in the parcel. We
+will also assume that there is a covariate \(X\), say humidity, measured
+at the same locations.</p>
+
+<p>The code below generates the data for this example and the figure shows
+such data. We are assuming that the organic matter is measuered in a
+fictitious scale where the unit is OM.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># load toy dataset for example</span><span class="w">
+</span><span class="n">spatial_reg</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">soil_data</span><span class="p">(</span><span class="n">n_peaks</span><span class="o">=</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">n_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">300</span><span class="p">,</span><span class="w"> </span><span class="n">seed</span><span class="o">=</span><span class="m">0</span><span class="p">)</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">spatial_reg</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##         lng       lat   humidity        OM
+## 1 357.78218 370.77231  1.6951691 205.56831
+## 2 105.93796 268.81118  1.8340258 221.05495
+## 3 148.47744  37.84828  0.9823934 167.15905
+## 4 228.56849 196.54585  0.8873421 101.62076
+## 5 362.37491 184.15918 -0.8146412  73.02679
+## 6  80.47109 149.71140 -0.3820763  65.79837
+</code></pre></div></div>
+
+<p><img src="../images/week-6/plt_soil_data-1.png" alt="" /></p>
+
+<p>The plot below shows the organic matter vs humidity. Notice that the
+values of organic matter are positive and that they become more spread
+the larger the values of humidity.
+<img src="../images/week-6/plt_soil_cov-1.png" alt="" /></p>
+
+<p>If we transform the organic matter values with the logarithm, we get a
+clear linear relation with the values of humidity (see figure below).
+This resembles a perfect straight line, because this is a toy example
+designed this way. Things are less clear in reality, but the principles
+shown here can still be applied to it.
+<img src="../images/week-6/plt_logsoil_cova-1.png" alt="" /></p>
+
+<p>In this case we will fit a GLM using the logarithm as link function. The
+model is described as</p>
+
+<p>\(log(y_i) = \eta_i = \beta_0 + \beta_1 x_i\),</p>
+
+<p>where \(y_i\) is the amount of organic matter, \(x_i\) is the humidity
+level, and \(\beta_0\) and \(\beta_1\) are parameters. To fit this model
+we can use the following command.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Fit GLM to toy dataset</span><span class="w">
+</span><span class="n">m3</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">glm</span><span class="p">(</span><span class="n">OM</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">humidity</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">spatial_reg</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="s2">"log"</span><span class="p">))</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">m3</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+## Call:
+## glm(formula = OM ~ humidity, family = gaussian(link = "log"), 
+##     data = spatial_reg)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -69.974  -14.630   -4.598   10.982  101.743  
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  4.43623    0.02176  203.83   &lt;2e-16 ***
+## humidity     0.50586    0.01662   30.44   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 674.2259)
+## 
+##     Null deviance: 918485  on 299  degrees of freedom
+## Residual deviance: 200919  on 298  degrees of freedom
+## AIC: 2809.4
+## 
+## Number of Fisher Scoring iterations: 4
+</code></pre></div></div>
+
+<p>Once we have our GLM fitted, we can analyze the residuals to check if
+the assumption of them being independent and identically distributed is
+valid. In the figure below it seems that the values of the residuals are
+spatially related. <img src="../images/week-6/plt_soil_cova-1.png" alt="" /></p>
+
+<p>We will make a more objective assesment of the residual’s independence
+with Moran’s coefficient. The figure displayed below is a spatial
+autocorrelogram shows that there is spatial autocorrelation and
+therefore that the residuals are not independent.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Compute correlogram of the residuals</span><span class="w">
+</span><span class="n">nbc</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">10</span><span class="w">
+</span><span class="n">cor_r</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pgirmess</span><span class="o">::</span><span class="n">correlog</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="n">spatial_reg</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"lng"</span><span class="p">,</span><span class="w"> </span><span class="s2">"lat"</span><span class="p">)],</span><span class="w">
+                            </span><span class="n">z</span><span class="o">=</span><span class="n">spatial_reg</span><span class="o">$</span><span class="n">residuals</span><span class="p">,</span><span class="w">
+                            </span><span class="n">method</span><span class="o">=</span><span class="s2">"Moran"</span><span class="p">,</span><span class="w"> </span><span class="n">nbclass</span><span class="o">=</span><span class="n">nbc</span><span class="p">)</span><span class="w">
+
+</span><span class="n">correlograms</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">cor_r</span><span class="p">)</span><span class="w">
+</span><span class="n">correlograms</span><span class="o">$</span><span class="n">variable</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"residuals_glm"</span><span class="w"> 
+
+</span><span class="c1"># Plot correlogram</span><span class="w">
+</span><span class="n">ggplot</span><span class="p">(</span><span class="n">subset</span><span class="p">(</span><span class="n">correlograms</span><span class="p">,</span><span class="w"> </span><span class="n">variable</span><span class="o">==</span><span class="s2">"residuals_glm"</span><span class="p">),</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">dist.class</span><span class="p">,</span><span class="w"> </span><span class="n">coef</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_hline</span><span class="p">(</span><span class="n">yintercept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"grey"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_line</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="s2">"steelblue"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_point</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="s2">"steelblue"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">xlab</span><span class="p">(</span><span class="s2">"distance"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">ylab</span><span class="p">(</span><span class="s2">"Moran's coefficient"</span><span class="p">)</span><span class="o">+</span><span class="w">
+  </span><span class="n">theme</span><span class="p">(</span><span class="n">panel.grid.major</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">panel.grid.minor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> 
+        </span><span class="n">panel.background</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">axis.line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_line</span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"black"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/correlogram_1-1.png" alt="" /></p>
+
+<p>An approach to account for the spatial structure could be to include the
+GPS coordinates as covariates in the model. For example</p>
+
+<p>\(\eta_i = \beta_0 + \beta_1 x_i + \beta_2 s_{[i,1]} + \beta_3 s_{[i,2]}\),</p>
+
+<p>where \((s_{[i,1]}, s_{[i,2]})\) are the longitude and latitude
+coordinates where each measurment was taken.</p>
+
+<p>Having a trend across the surface may seem like a good idea, but it is
+not the best approach; and sometimes it is not even a good approach.
+First of all, the assumption of a surface trend may be to rigid. A
+polynomial fit, while more flexible, may still be too rigid or overfit
+the data. In any case we would need to decide which polynomial to use
+among all possibilities. For example</p>
+
+<p>\(\eta_i = \beta_0 + \beta_1 x_i + \beta_2 s_{[i,1]} + \beta_3 s_{[i,2]} + \beta_4 s_{[i,1]} s_{[i,2]}\),</p>
+
+<p>\(\eta_i = \beta_0 + \beta_1 x_i + \beta_2 s_{[i,1]} + \beta_3 s_{[i,2]} + \beta_4 s_{[i,1]} s_{[i,2]} + \beta_5 s_{[i,1]}^2 + \beta_6 s_{[i,2]}^2\),</p>
+
+<p>etc…</p>
+
+<h2 id="spatial-covariance">Spatial Covariance</h2>
+
+<p>The core idea behind Spatial Statistics is to understand an characterize
+this spatial dependence that is observed in different processes, for
+example: amount of rainfall, global temperature, air pollution, etc.
+Spatial Statistics deal with problems were nearby things are expected to
+be more alike.</p>
+
+<p>When want to measure how much two variables change together, we use the
+covariance function. Under the right assumptions, we can also use the
+covariance function to describe the similarity of the observed values
+based on their location.</p>
+
+<p>A covariance function
+\(K : \mathbb{S} \ \times\ \mathbb{S}\ \rightarrow \ \mathbb{R}\) maps a
+pair of points \(z_1=(s_{[1,1]},s_{[1,2]})\) and
+\(z_2 = (s_{[2,1]},s_{[2,2]})\) to the real line. We can define such a
+function in terms of the distance between a pair of points. Let the
+distance between the points be given by \(r = ||z_1 -z_2||\), the
+following are examples of covariance functions:</p>
+
+<p>Exponentiated Quadratic:
+\(K(z_1, z_2) = \sigma^2\text{exp}(r^2/\rho^2)\)</p>
+
+<p>Rational Quadratic:
+\(K(z_1, z_2) = \sigma^2(1+r^2/2\alpha\rho^2))^{-\alpha}\)</p>
+
+<p>Matern Covariance:
+\(K(z_1, z_2) = \sigma^22^{1-\nu}/\Gamma(\nu)((2\nu)^{0.5}r/\rho)^{\nu}\mathcal{K}_{\nu}((2\nu)^{0.5}r/\rho)\)</p>
+
+<p>The quantities \(\rho, \alpha, \nu\) are parameters of the functions
+mentioned and \(\mathcal{K}_{\nu}\) is the modified Bessel function of
+second kind. In the three cases, while less clear in the Matern case,
+the covariance decreases asymptotically towards zero the larger the
+value of \(r\). This is the more distance between a pair of points, the
+weaker the covariance between them.</p>
+
+<p>The election of which covariance function to use depends on our
+assumptions about the change in the association between the points
+across space (eg., the speed of decay).</p>
+
+<h2 id="geostatistics">Geostatistics</h2>
+
+<p>Now that we have discussed how the covariance function can help model
+spatial dependence, we can discuss how to incorporate this ideas into
+our model. In our GLM example above we fitted a model of the form</p>
+
+<p>\(\eta_i = \beta_0 + \beta_1 x_i\),</p>
+
+<p>Now we will incorporate an spatial component as</p>
+
+<p>\(\eta_i = \beta_0 + \beta_1 x_i + f(z_i)\), where
+(\(f(z_1), \ldots , f(z_2)\)) is a multivariate Gaussian with spatial
+covariance \(K\).</p>
+
+<p>We can implement this model, assuming a Matern covariance, as shown
+below.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Fit GAM with spatial smooth</span><span class="w">
+</span><span class="n">m4</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spaMM</span><span class="o">::</span><span class="n">fitme</span><span class="p">(</span><span class="n">OM</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">humidity</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Matern</span><span class="p">(</span><span class="m">1</span><span class="o">|</span><span class="n">lng</span><span class="o">+</span><span class="n">lat</span><span class="p">),</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">spatial_reg</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="s2">"log"</span><span class="p">),</span><span class="w"> </span><span class="n">init</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="n">lambda</span><span class="o">=</span><span class="m">.5</span><span class="p">,</span><span class="w"> </span><span class="n">phi</span><span class="o">=</span><span class="m">.5</span><span class="p">))</span><span class="w">
+
+</span><span class="n">summary</span><span class="p">(</span><span class="n">m4</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## formula: OM ~ humidity + Matern(1 | lng + lat)
+## Estimation of corrPars, lambda and phi by Laplace ML approximation (p_v).
+## Estimation of fixed effects by Laplace ML approximation (p_v).
+## Estimation of lambda and phi by 'outer' ML, maximizing p_v.
+## family: gaussian( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)   4.3187 0.092594   46.64
+## humidity      0.5047 0.008029   62.87
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##        1.nu       1.rho 
+## 0.234445951 0.004405115 
+##            --- Variance parameters ('lambda'):
+## lambda = var(u) for u ~ Gaussian; 
+##    lng + lat  :  0.04179  
+## # of obs: 300; # of groups: lng + lat, 300 
+##  -------------- Residual variance  ------------
+## phi estimate was 0.999905 
+##  ------------- Likelihood values  -------------
+##                         logLik
+## p_v(h) (marginal L): -1195.988
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">nu</code> (\(\nu\)) represents the ‘smoothness’ parameter and <code class="language-plaintext highlighter-rouge">rho</code>
+(\(\rho\)) the scale parameter. <code class="language-plaintext highlighter-rouge">lambda</code> is the estimated variance in
+the random effect and <code class="language-plaintext highlighter-rouge">phi</code> the estimated variance in the residual
+error.</p>
+
+<p>In the next figure, we will show the spatial effect by predicting the
+values of organic matter across space with a fixed level of humidity.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Make predictions on a spatial grid</span><span class="w">
+</span><span class="n">surf_grid</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">make_grid</span><span class="p">(</span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">))</span><span class="w">
+</span><span class="n">surf_grid</span><span class="o">$</span><span class="n">humidity</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mean</span><span class="p">(</span><span class="n">spatial_reg</span><span class="o">$</span><span class="n">humidity</span><span class="p">)</span><span class="w"> </span><span class="c1"># Assume covariate is constant across all space (for visualization only)</span><span class="w">
+</span><span class="n">surf_grid</span><span class="o">$</span><span class="n">spatial_effect</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">m4</span><span class="p">,</span><span class="w"> </span><span class="n">newdata</span><span class="o">=</span><span class="n">surf_grid</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s2">"response"</span><span class="p">)[,</span><span class="w"> </span><span class="m">1</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/plt_smooth-1.png" alt="" /></p>
+
+<p>Next, we will compare the autocorrelation observed in the residuals of
+this geostatistic model and the autocorrelation of the residuals of the
+GLM. As we saw above, the residuals of the GLM were spatially
+correlated. That is not the case for the geostatistic model.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Compute correlogram of the residuals</span><span class="w">
+</span><span class="n">cor_g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pgirmess</span><span class="o">::</span><span class="n">correlog</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="n">spatial_reg</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"lng"</span><span class="p">,</span><span class="w"> </span><span class="s2">"lat"</span><span class="p">)],</span><span class="w">
+                            </span><span class="n">z</span><span class="o">=</span><span class="n">residuals</span><span class="p">(</span><span class="n">m4</span><span class="p">),</span><span class="w">
+                            </span><span class="n">method</span><span class="o">=</span><span class="s2">"Moran"</span><span class="p">,</span><span class="w"> </span><span class="n">nbclass</span><span class="o">=</span><span class="n">nbc</span><span class="p">)</span><span class="w">
+
+</span><span class="n">cor_g</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">cor_g</span><span class="p">)</span><span class="w">
+</span><span class="n">cor_g</span><span class="o">$</span><span class="n">variable</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"residuals_geostatistic"</span><span class="w">
+</span><span class="n">correlograms</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rbind</span><span class="p">(</span><span class="n">correlograms</span><span class="p">,</span><span class="w"> </span><span class="n">cor_g</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Plot both correlograms</span><span class="w">
+</span><span class="n">ggplot</span><span class="p">(</span><span class="n">correlograms</span><span class="p">,</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">dist.class</span><span class="p">,</span><span class="w"> </span><span class="n">coef</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_hline</span><span class="p">(</span><span class="n">yintercept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"grey"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_line</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="n">variable</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="n">variable</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">xlab</span><span class="p">(</span><span class="s2">"distance"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">ylab</span><span class="p">(</span><span class="s2">"Moran's coefficient"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">theme</span><span class="p">(</span><span class="n">panel.grid.major</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">panel.grid.minor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> 
+        </span><span class="n">panel.background</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">axis.line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_line</span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"black"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/correlogram_2-1.png" alt="" /></p>
+
+<h2 id="cross-validation">Cross-Validation</h2>
+
+<p>Cross-validation can be used for for model selection. Once we have
+different models with their parameters calibrated, we can use
+cross-valiation to select the one that has a better performance in the
+data of interest.</p>
+
+<p>The proceedure for doing \(k\)-fold cross-validation is as follows.
+Instead of fitting the model to the observed data, we first split the
+data into \(k\) subsets. Then we train the model \(k\) times, each one
+using only 4 of the groups, and computing some performance metric on the
+left out group. The performance metric could be the sum of squared
+errors or any other sensible metric depending on the application. Below
+we show a diagram of a 5-fold cross validation.
+<img src="../images/week-6/k_fold_cv-1.png" alt="" /></p>
+
+<h3 id="glm-surface-trend-vs-geostatistic-model">GLM Surface Trend vs Geostatistic Model</h3>
+
+<p>Before introducing the geostatistic models we discussed fitting a GLM
+using the location of the measurments as covariates. Here we will
+compare the performance of a GLM with a surface trend with a
+Geostatistic model using cross-validation.</p>
+
+<p>The code below will split the data using only 3 folds.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Copy spatial_reg without residuals</span><span class="w">
+</span><span class="n">all_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spatial_reg</span><span class="p">[,</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"lng"</span><span class="p">,</span><span class="w"> </span><span class="s2">"lat"</span><span class="p">,</span><span class="w"> </span><span class="s2">"humidity"</span><span class="p">,</span><span class="w"> </span><span class="s2">"OM"</span><span class="p">)]</span><span class="w">
+
+</span><span class="c1"># Make an index with the 2 folds</span><span class="w">
+</span><span class="n">ix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">caret</span><span class="o">::</span><span class="n">createFolds</span><span class="p">(</span><span class="n">all_data</span><span class="o">$</span><span class="n">OM</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Now we will do 3-fold cross-validation using this the mean squared error
+as performance metric.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">mse_glm</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">()</span><span class="w">
+</span><span class="n">mse_geo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">()</span><span class="w">
+</span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">test_set</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">all_data</span><span class="p">[</span><span class="n">ix</span><span class="p">[[</span><span class="n">i</span><span class="p">]],</span><span class="w"> </span><span class="p">]</span><span class="w"> 
+  </span><span class="n">train_set</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">all_data</span><span class="p">[(</span><span class="m">1</span><span class="o">:</span><span class="m">300</span><span class="p">)[</span><span class="o">-</span><span class="nf">c</span><span class="p">(</span><span class="n">ix</span><span class="p">[[</span><span class="n">i</span><span class="p">]])],</span><span class="w"> </span><span class="p">]</span><span class="w">
+  </span><span class="n">m_glm</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">glm</span><span class="p">(</span><span class="n">OM</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">humidity</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">lng</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">lat</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">lng</span><span class="o">*</span><span class="n">lat</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="s2">"log"</span><span class="p">))</span><span class="w">
+  </span><span class="n">m_geo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spaMM</span><span class="o">::</span><span class="n">fitme</span><span class="p">(</span><span class="n">OM</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">humidity</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Matern</span><span class="p">(</span><span class="m">1</span><span class="o">|</span><span class="n">lng</span><span class="o">+</span><span class="n">lat</span><span class="p">),</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="s2">"log"</span><span class="p">),</span><span class="w"> </span><span class="n">init</span><span class="o">=</span><span class="nf">list</span><span class="p">(</span><span class="n">lambda</span><span class="o">=</span><span class="m">.5</span><span class="p">,</span><span class="w"> </span><span class="n">phi</span><span class="o">=</span><span class="m">.5</span><span class="p">))</span><span class="w">
+
+  </span><span class="n">mse_glm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mean</span><span class="p">((</span><span class="n">predict</span><span class="p">(</span><span class="n">m_glm</span><span class="p">,</span><span class="w"> </span><span class="n">newdata</span><span class="o">=</span><span class="n">test_set</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s2">"response"</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">test_set</span><span class="o">$</span><span class="n">OM</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">)</span><span class="w">
+  </span><span class="n">mse_geo</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mean</span><span class="p">((</span><span class="n">predict</span><span class="p">(</span><span class="n">m_geo</span><span class="p">,</span><span class="w"> </span><span class="n">newdata</span><span class="o">=</span><span class="n">test_set</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s2">"response"</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">test_set</span><span class="o">$</span><span class="n">OM</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">)</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span><span class="n">print</span><span class="p">(</span><span class="n">mse_glm</span><span class="p">)</span><span class="w"> </span><span class="c1"># MSE for GLM in each round</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 690.3978 684.8136 689.3160
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">print</span><span class="p">(</span><span class="n">mse_geo</span><span class="p">)</span><span class="w"> </span><span class="c1"># MSE for geostatistic model in each round</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 228.5154 208.3311 229.2601
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">print</span><span class="p">(</span><span class="n">mean</span><span class="p">(</span><span class="n">mse_glm</span><span class="p">))</span><span class="w"> </span><span class="c1"># Average MSE with GLM</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 688.1758
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">print</span><span class="p">(</span><span class="n">mean</span><span class="p">(</span><span class="n">mse_geo</span><span class="p">))</span><span class="w"> </span><span class="c1"># Average MSE with geostatistic model</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 222.0355
+</code></pre></div></div>
+
+<p>Clearly the geostatisc model showed a better performance than a 1st
+order surface trend.</p>
+
+<h2 id="application-example-malaria-case">Application Example: Malaria Case</h2>
+
+<p>Now we will estimate the prevalence of malaria in Oromoia State,
+Ethiopia, using data from 2009. We have used this dataset in previous
+sessions. This survey data contains information about number of positive
+cases and number of examined people in different schools. Spatial
+information is encoded in the fields <em>longitude</em> and <em>latitude</em>. To
+represent this data we can use a Binomial likelihood, that models number
+of successes out of a number of trials.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Load data</span><span class="w">
+</span><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w"> </span><span class="c1"># Case data</span><span class="w">
+</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="c1"># Admin boundaries</span><span class="w">
+</span><span class="n">Oromia</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">subset</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">NAME_1</span><span class="o">==</span><span class="s2">"Oromia"</span><span class="p">)</span><span class="w">
+</span><span class="c1"># Plot both country and data points</span><span class="w">
+</span><span class="n">raster</span><span class="o">::</span><span class="n">plot</span><span class="p">(</span><span class="n">Oromia</span><span class="p">)</span><span class="w">
+</span><span class="n">points</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
+       </span><span class="n">pch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">16</span><span class="p">,</span><span class="w"> </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="o">=</span><span class="m">.5</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/ETH_malaria_data_data-1.png" alt="" /></p>
+
+<p>To model and predict malaria prevalence across Oromia State, we need to
+first obtain predictors as rasters at a common resolution/extent. In
+this example, we are going to use two of the
+<a href="https://www.worldclim.org/bioclim">Bioclim</a> layers, accessible using
+the <code class="language-plaintext highlighter-rouge">getData</code> function in the raster package.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bioclim_layers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">getData</span><span class="p">(</span><span class="s1">'worldclim'</span><span class="p">,</span><span class="w"> </span><span class="n">var</span><span class="o">=</span><span class="s1">'bio'</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="o">=</span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">lon</span><span class="o">=</span><span class="m">38.7578</span><span class="p">,</span><span class="w"> </span><span class="n">lat</span><span class="o">=</span><span class="m">8.9806</span><span class="p">)</span><span class="w"> </span><span class="c1"># lng/lat for Addis Ababa</span><span class="w">
+</span></code></pre></div></div>
+
+<p>We can crop these layers to make them a little easier to handle</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bioclim_layers_oromia</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">crop</span><span class="p">(</span><span class="n">bioclim_layers</span><span class="p">,</span><span class="w"> </span><span class="n">Oromia</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="m">1</span><span class="p">]])</span><span class="w"> </span><span class="c1"># Bio1 - Annual mean temperature</span><span class="w">
+</span><span class="n">lines</span><span class="p">(</span><span class="n">Oromia</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/unnamed-chunk-2-1.png" alt="" /></p>
+
+<p>Now let’s extract Bio1 (Annual mean temperature) and Bio12 (Annual
+precipitation) at the observation points</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">bioclim1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">extract</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="m">1</span><span class="p">]],</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)])</span><span class="w">
+</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">bioclim12</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">extract</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="m">12</span><span class="p">]],</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)])</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Now we fit the model without a spatial effect</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">prev_eth_non_spatial</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spaMM</span><span class="o">::</span><span class="n">fitme</span><span class="p">(</span><span class="n">cbind</span><span class="p">(</span><span class="n">pf_pos</span><span class="p">,</span><span class="w"> </span><span class="n">examined</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">pf_pos</span><span class="p">)</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">bioclim1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bioclim12</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">ETH_malaria_data</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">binomial</span><span class="p">())</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">prev_eth_non_spatial</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## formula: cbind(pf_pos, examined - pf_pos) ~ bioclim1 + bioclim12
+## Estimation of fixed effects by ML.
+## family: binomial( link = logit ) 
+##  ------------ Fixed effects (beta) ------------
+##               Estimate  Cond. SE t-value
+## (Intercept) -8.3877645 1.6270530  -5.155
+## bioclim1     0.0113220 0.0071609   1.581
+## bioclim12    0.0003221 0.0002892   1.114
+##  ------------- Likelihood values  -------------
+##                         logLik
+## p(h)   (Likelihood): -225.3651
+</code></pre></div></div>
+
+<p>And take a look at spatial autocorrelation in the residuals</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Compute correlogram of the residuals</span><span class="w">
+</span><span class="n">nbc</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">10</span><span class="w">
+</span><span class="n">cor_r</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">pgirmess</span><span class="o">::</span><span class="n">correlog</span><span class="p">(</span><span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)],</span><span class="w">
+                            </span><span class="n">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">residuals</span><span class="p">(</span><span class="n">prev_eth_non_spatial</span><span class="p">),</span><span class="w">
+                            </span><span class="n">method</span><span class="o">=</span><span class="s2">"Moran"</span><span class="p">,</span><span class="w"> </span><span class="n">nbclass</span><span class="o">=</span><span class="n">nbc</span><span class="p">)</span><span class="w">
+</span><span class="c1"># Take a look</span><span class="w">
+</span><span class="n">cor_r</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Moran I statistic 
+##       dist.class         coef      p.value    n
+##  [1,]  0.3979675  0.213017123 5.802342e-18 3904
+##  [2,]  1.1937029  0.028898305 3.694712e-02 5192
+##  [3,]  1.9894379 -0.080956078 9.999813e-01 5680
+##  [4,]  2.7851728  0.005201002 3.088872e-01 4976
+##  [5,]  3.5809077 -0.082301163 9.999447e-01 5078
+##  [6,]  4.3766427 -0.073938125 9.999696e-01 5896
+##  [7,]  5.1723776 -0.028849255 8.763001e-01 4890
+##  [8,]  5.9681126  0.010150804 2.751356e-01 3694
+##  [9,]  6.7638475 -0.004337107 4.289353e-01 1412
+## [10,]  7.5595825 -0.015830649 4.321667e-01  284
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot correlogram</span><span class="w">
+</span><span class="n">correlograms</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">cor_r</span><span class="p">)</span><span class="w">
+</span><span class="n">correlograms</span><span class="o">$</span><span class="n">variable</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"residuals_glm"</span><span class="w"> 
+
+</span><span class="n">ggplot</span><span class="p">(</span><span class="n">subset</span><span class="p">(</span><span class="n">correlograms</span><span class="p">,</span><span class="w"> </span><span class="n">variable</span><span class="o">==</span><span class="s2">"residuals_glm"</span><span class="p">),</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">dist.class</span><span class="p">,</span><span class="w"> </span><span class="n">coef</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_hline</span><span class="p">(</span><span class="n">yintercept</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"grey"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_line</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="s2">"steelblue"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_point</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="s2">"steelblue"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+  </span><span class="n">xlab</span><span class="p">(</span><span class="s2">"distance"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">ylab</span><span class="p">(</span><span class="s2">"Moran's coefficient"</span><span class="p">)</span><span class="o">+</span><span class="w">
+  </span><span class="n">theme</span><span class="p">(</span><span class="n">panel.grid.major</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">panel.grid.minor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> 
+        </span><span class="n">panel.background</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w"> </span><span class="n">axis.line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_line</span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"black"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/unnamed-chunk-5-1.png" alt="" /></p>
+
+<p>There does appear to be residual spatial autocorrelation, so let’s fit a
+spatial model.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">prev_eth</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spaMM</span><span class="o">::</span><span class="n">fitme</span><span class="p">(</span><span class="n">cbind</span><span class="p">(</span><span class="n">pf_pos</span><span class="p">,</span><span class="w"> </span><span class="n">examined</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">pf_pos</span><span class="p">)</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">bioclim1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bioclim12</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Matern</span><span class="p">(</span><span class="m">1</span><span class="o">|</span><span class="n">latitude</span><span class="o">+</span><span class="n">longitude</span><span class="p">),</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">ETH_malaria_data</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">binomial</span><span class="p">())</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">prev_eth</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## formula: cbind(pf_pos, examined - pf_pos) ~ bioclim1 + bioclim12 + Matern(1 | 
+##     latitude + longitude)
+## Estimation of corrPars and lambda by Laplace ML approximation (p_v).
+## Estimation of fixed effects by Laplace ML approximation (p_v).
+## Estimation of lambda by 'outer' ML, maximizing p_v.
+## family: binomial( link = logit ) 
+##  ------------ Fixed effects (beta) ------------
+##               Estimate Cond. SE t-value
+## (Intercept) -1.414e+01 6.039219 -2.3415
+## bioclim1     3.023e-02 0.024997  1.2093
+## bioclim12   -1.926e-04 0.001365 -0.1411
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##      1.nu     1.rho 
+## 0.4406288 1.6557057 
+##            --- Variance parameters ('lambda'):
+## lambda = var(u) for u ~ Gaussian; 
+##    latitude .  :  4.7  
+## # of obs: 203; # of groups: latitude ., 203 
+##  ------------- Likelihood values  -------------
+##                        logLik
+## p_v(h) (marginal L): -106.412
+</code></pre></div></div>
+
+<p>We can generate a quick scatter plot of observed vs fitted values</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="p">,</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">prev_eth</span><span class="p">))</span><span class="w">
+</span><span class="n">abline</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/unnamed-chunk-6-1.png" alt="" /></p>
+
+<p>We have two bioclimatic variables. Are we sure we need these in the
+model? If not, how to decide which one(s) we should remove?</p>
+
+<p>In this case, we are particularly interested in prediction,
+i.e. predicting prevalence values at un-surveyed locations. So, we will
+do 5-fold cross-validation using the mean squared error as performance
+metric. The function below will compute the mean square error across all
+folds. This function takes as input a dataset, an R formula object (that
+tells which covariates are used in the model) and a list of indices that
+describes the data splitting k folds.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Function to compute a cross-validated MSE score</span><span class="w">
+</span><span class="n">cv_eth</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">spamm_formula</span><span class="p">,</span><span class="w"> </span><span class="n">ix_test_list</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">mse</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">()</span><span class="w">
+  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="nf">length</span><span class="p">(</span><span class="n">ix_test_list</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="n">test_set</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data</span><span class="p">[</span><span class="n">ix_test_list</span><span class="p">[[</span><span class="n">i</span><span class="p">]],</span><span class="w"> </span><span class="p">]</span><span class="w"> 
+    </span><span class="n">train_set</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data</span><span class="p">[(</span><span class="m">1</span><span class="o">:</span><span class="m">300</span><span class="p">)[</span><span class="o">-</span><span class="nf">c</span><span class="p">(</span><span class="n">ix_test_list</span><span class="p">[[</span><span class="n">i</span><span class="p">]])],</span><span class="w"> </span><span class="p">]</span><span class="w">
+    </span><span class="n">model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spaMM</span><span class="o">::</span><span class="n">fitme</span><span class="p">(</span><span class="n">spamm_formula</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="o">=</span><span class="n">binomial</span><span class="p">())</span><span class="w">
+    </span><span class="n">model_prediction</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="n">newdata</span><span class="o">=</span><span class="n">test_set</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s2">"response"</span><span class="p">)[,</span><span class="m">1</span><span class="p">]</span><span class="w">
+    </span><span class="n">mse</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mean</span><span class="p">((</span><span class="n">model_prediction</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">test_set</span><span class="o">$</span><span class="n">examined</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">test_set</span><span class="o">$</span><span class="n">pf_pos</span><span class="p">)</span><span class="o">^</span><span class="m">2</span><span class="p">)</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+  </span><span class="nf">return</span><span class="p">(</span><span class="n">mean</span><span class="p">(</span><span class="n">mse</span><span class="p">))</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>As we saw above, to split the data into folds we call the command</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Define 5 folds</span><span class="w">
+</span><span class="n">ix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">caret</span><span class="o">::</span><span class="n">createFolds</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pos</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The procedure we will follow to choose the variables to include in the
+model is know as Backward Selection. We start with a model that contains
+all variables and compute the CV-MSE. We then remove one variable at a
+time, refit the model and compute the CV-MSE. If the best of these new
+models (with one less variable) outperforms the model with all
+variables, then select this new model as the optimal. Hence we will have
+decided which variable to remove. Afterwards we repeat the same
+proceedure removing a new variable from the ones that are still included
+in the new model. The code to carry on the Backward Selection method is
+below.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">layer_names</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"bioclim1"</span><span class="p">,</span><span class="w"> </span><span class="s2">"bioclim12"</span><span class="p">)</span><span class="w">
+</span><span class="n">formula_kern</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"cbind(pf_pos, examined - pf_pos) ~ Matern(1|latitude+longitude)"</span><span class="w">
+</span><span class="n">formula_model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">formula_kern</span><span class="p">,</span><span class="w"> </span><span class="n">layer_names</span><span class="p">),</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">" + "</span><span class="p">)</span><span class="w">
+</span><span class="n">scores</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">cv_eth</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="p">,</span><span class="w"> </span><span class="n">as.formula</span><span class="p">(</span><span class="n">formula_model</span><span class="p">),</span><span class="w"> </span><span class="n">ix</span><span class="p">))</span><span class="w">
+</span><span class="c1"># Simpler model</span><span class="w">
+</span><span class="n">num_covariates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">layer_names</span><span class="p">)</span><span class="w">
+</span><span class="n">max_covariates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">num_covariates</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="n">indices</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">num_covariates</span><span class="w">
+
+</span><span class="n">board</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data.frame</span><span class="p">(</span><span class="n">MSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tail</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">Covariates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">paste</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">","</span><span class="p">))</span><span class="w">
+</span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">num_covariates</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">max_covariates</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">scores_iter</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">()</span><span class="w">
+  </span><span class="n">ix_subsets</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">gtools</span><span class="o">::</span><span class="n">combinations</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">num_covariates</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="o">=</span><span class="n">num_covariates</span><span class="m">-1</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="o">=</span><span class="n">indices</span><span class="p">)</span><span class="w">
+  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">1</span><span class="o">:</span><span class="n">nrow</span><span class="p">(</span><span class="n">ix_subsets</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="n">cov_subset</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">layer_names</span><span class="p">[</span><span class="n">ix_subsets</span><span class="p">[</span><span class="n">i</span><span class="p">,]]</span><span class="w">
+    </span><span class="n">formula_model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">paste</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">formula_kern</span><span class="p">,</span><span class="w"> </span><span class="n">cov_subset</span><span class="p">),</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">" + "</span><span class="p">)</span><span class="w">
+    </span><span class="n">scores_iter</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">scores_iter</span><span class="p">,</span><span class="w"> </span><span class="n">cv_eth</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="p">,</span><span class="w"> </span><span class="n">as.formula</span><span class="p">(</span><span class="n">formula_model</span><span class="p">),</span><span class="w"> </span><span class="n">ix</span><span class="p">))</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+  </span><span class="n">best</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">which.min</span><span class="p">(</span><span class="n">scores_iter</span><span class="p">)</span><span class="w">
+  </span><span class="n">indices</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ix_subsets</span><span class="p">[</span><span class="n">best</span><span class="p">,</span><span class="w"> </span><span class="p">]</span><span class="w">
+  </span><span class="n">scores</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span><span class="w"> </span><span class="n">scores_iter</span><span class="p">[</span><span class="n">best</span><span class="p">])</span><span class="w">
+  </span><span class="n">num_covariates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span><span class="w">
+  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">diff</span><span class="p">(</span><span class="n">tail</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="m">2</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">max_covariates</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="n">max_covariates</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">max_covariates</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+  </span><span class="n">board</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rbind</span><span class="p">(</span><span class="n">board</span><span class="p">,</span><span class="w">
+                 </span><span class="n">data.frame</span><span class="p">(</span><span class="n">MSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tail</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="o">=</span><span class="m">1</span><span class="p">),</span><span class="w">
+                            </span><span class="n">Covariates</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">paste</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">","</span><span class="p">)))</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Here is a summary of the results. The covariates are indexed as: 1 -
+bioclim1, 2 - bioclim12.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">print</span><span class="p">(</span><span class="n">board</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##        MSE Covariates
+## 1 1.461584        1,2
+## 2 1.466851          1
+</code></pre></div></div>
+
+<p>According to this results the best model according to the lowest MSE is
+achieved when using both bioclim1 and bioclim12.</p>
+
+<h3 id="prediction">Prediction</h3>
+
+<p>Now we have a model that relates our climatic layers to prevalence, we
+can predict the probability/prevalence of infection at any location
+within the region our data are representative where we have values of
+these climatic layers. It is possible to predict from a model directly
+onto a raster stack of covariates which makes life easy. However, in
+this case, we are using a geostatistical model, which includes latitude
+and longitude, and therefore we need to generate rasters of these to add
+to the stack of bioclim1 and bioclim12.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create an empty raster with the same extent and resolution as the bioclimatic layers</span><span class="w">
+</span><span class="n">latitude_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">longitude_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="n">raster</span><span class="p">(</span><span class="n">nrows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nrow</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="m">1</span><span class="p">]]),</span><span class="w">
+                                       </span><span class="n">ncols</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ncol</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="m">1</span><span class="p">]]),</span><span class="w">
+                                                    </span><span class="n">ext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">extent</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="m">1</span><span class="p">]]))</span><span class="w">
+
+</span><span class="c1"># Change the values to be latitude and longitude respectively</span><span class="w">
+</span><span class="n">longitude_raster</span><span class="p">[]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">coordinates</span><span class="p">(</span><span class="n">longitude_raster</span><span class="p">)[,</span><span class="m">1</span><span class="p">]</span><span class="w">
+</span><span class="n">latitude_raster</span><span class="p">[]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">coordinates</span><span class="p">(</span><span class="n">latitude_raster</span><span class="p">)[,</span><span class="m">2</span><span class="p">]</span><span class="w">
+
+</span><span class="c1"># Now create a final prediction stack of the 4 variables we need</span><span class="w">
+</span><span class="n">pred_stack</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">stack</span><span class="p">(</span><span class="n">bioclim_layers_oromia</span><span class="p">[[</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">12</span><span class="p">)]],</span><span class="w">
+                    </span><span class="n">longitude_raster</span><span class="p">,</span><span class="w">
+                    </span><span class="n">latitude_raster</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Rename to ensure the names of the raster layers in the stack match those used in the model</span><span class="w">
+</span><span class="nf">names</span><span class="p">(</span><span class="n">pred_stack</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"bioclim1"</span><span class="p">,</span><span class="w"> </span><span class="s2">"bioclim12"</span><span class="p">,</span><span class="w"> </span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">pred_stack</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/unnamed-chunk-7-1.png" alt="" /></p>
+
+<p>Now we have a stack of rasters of the 4 variables used in the model at
+the same resolution and extent, we can run the <code class="language-plaintext highlighter-rouge">predict</code> function on the
+stack to produce a raster of preditions.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">predicted_prevalence_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">predict</span><span class="p">(</span><span class="n">pred_stack</span><span class="p">,</span><span class="w"> </span><span class="n">prev_eth</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">predicted_prevalence_raster</span><span class="p">)</span><span class="w">
+</span><span class="n">lines</span><span class="p">(</span><span class="n">Oromia</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/unnamed-chunk-8-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># If you want to clip the predictions to Oromia</span><span class="w">
+</span><span class="n">predicted_prevalence_raster_oromia</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">mask</span><span class="p">(</span><span class="n">predicted_prevalence_raster</span><span class="p">,</span><span class="w"> </span><span class="n">Oromia</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">predicted_prevalence_raster_oromia</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-6/unnamed-chunk-8-2.png" alt="" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this session we learned the basic concepts of spatial regression. We
+saw how the spatial covariance is an essential component of a spatial
+model. By encoding the spatial association into a kernel function, a
+geostatistic model outperforms linear models even when they include a
+polynomial representation of the observations coordinates. When properly
+accounting for the spatial structure of the data, the residuals of the
+model are independent.</p>
+
+<p>We also reviewed the concept of cross-validation as a means to select
+model. In particular we saw how it can help determine which covariates
+to include in the model.</p>
+
+<h2 id="references">References</h2>
+
+<h3 id="overview-of-glms">Overview of GLMs</h3>
+
+<p>Fox (2015) Applied Regression Analysis and Generalized Linear. <a href="https://www.sagepub.com/sites/default/files/upm-binaries/21121_Chapter_15.pdf">Chapter
+15</a></p>
+
+<p><a href="https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/1467-9876.00113">Diggle PJ, Tawn JA, Moyeed RA. Model‐based geostatistics. Journal of
+the Royal Statistical Society: Series C (Applied Statistics). 1998
+Mar;47(3):299-350</a></p>
+
+<p><a href="https://journals.plos.org/plosntds/article?id=10.1371/journal.pntd.0000958">Pullan RL, Gething PW, Smith JL, Mwandawiro CS, Sturrock HJ, Gitonga
+CW, Hay SI, Brooker S. Spatial modelling of soil-transmitted helminth
+infections in Kenya: a disease control planning tool. PLoS neglected
+tropical diseases. 2011 Feb
+8;5(2):e958.</a></p>
+
+<p><a href="https://www.sciencedirect.com/science/article/pii/S0140673619302260">Mosser JF, Gagne-Maynard W, Rao PC, Osgood-Zimmerman A, Fullman N,
+Graetz N, Burstein R, Updike RL, Liu PY, Ray SE, Earl L. Mapping
+diphtheria-pertussis-tetanus vaccine coverage in Africa, 2000–2016: a
+spatial and temporal modelling study. The Lancet. 2019 May
+4;393(10183):1843-55.</a></p>
+
+<p><a href="https://journals.plos.org/plosntds/article?id=10.1371/journal.pntd.0001194">Schur N, Hürlimann E, Garba A, Traoré MS, Ndir O, Ratard RC, Tchuenté
+LA, Kristensen TK, Utzinger J, Vounatsou P. Geostatistical model-based
+estimates of schistosomiasis prevalence among individuals aged≤ 20 years
+in West Africa. PLoS neglected tropical diseases. 2011 Jun
+14;5(6):e1194.</a></p>
+
+<h3 id="some-more-recent-advances-in-combining-machine-learning-techniques-to-model-the-covariate-effects-with-geostatistics">Some more recent advances in combining machine learning techniques to model the covariate effects with geostatistics</h3>
+
+<p><a href="https://royalsocietypublishing.org/doi/full/10.1098/rsif.2017.0520">Bhatt S, Cameron E, Flaxman SR, Weiss DJ, Smith DL, Gething PW.
+Improved prediction accuracy for disease risk mapping using Gaussian
+process stacked generalization. Journal of The Royal Society Interface.
+2017 Sep
+20;14(134):20170520.</a></p>
+
+<p><a href="https://www.nature.com/articles/s41591-019-0525-0">Bhattacharjee NV, Schaeffer LE, Marczak LB, Ross JM, Swartz SJ,
+Albright J, Gardner WM, Shields C, Sligar A, Schipp MF, Pickering BV.
+Mapping exclusive breastfeeding in Africa between 2000 and 2017. Nature
+medicine. 2019
+Aug;25(8):1205-12.</a></p>]]></content><author><name></name></author><summary type="html"><![CDATA[]]></summary></entry><entry><title type="html">Week 2 - Manipulating spatial data</title><link href="http://localhost:4000/week-2/" rel="alternate" type="text/html" title="Week 2 - Manipulating spatial data" /><published>2022-02-25T00:00:00-08:00</published><updated>2022-02-25T00:00:00-08:00</updated><id>http://localhost:4000/week-2</id><content type="html" xml:base="http://localhost:4000/week-2/"><![CDATA[<p>In week 1, you got to load up some spatial data and make some pretty
 maps. This week, we will be stepping up a gear and learning how to crop
 and subset spatial data. We will also be go through the process of
 resampling rasters.</p>
