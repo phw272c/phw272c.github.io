@@ -12,8 +12,6 @@ layout: post
 knitr::opts_chunk$set(fig.path = "../images/week-7/")
 ```
 
-## Week 7 - spatial regression of areal data
-
 You now have the skills to:
 
 - map spatial data
@@ -37,7 +35,7 @@ This week are going to introduce 2 more topics.
 The malaria data in Oromia is an example of binomial data. You are also likely to explore count data (e.g. numbers of disease cases). We can use a similar process to model these data. Let's look at an example of counts recorded over areal units (i.e. polygons). These data contain information on leukemia cases from New York (Turnbull et al 1990). We’ll load in the shape files for New York census tracts and the locations of hazardous waste sites as potential exposures. 
 
 First, load the libraries required for this week
-```{r}
+```{r setup, warning=FALSE, message=FALSE}
 library(sp)
 library(ggplot2)
 library(rgdal)
@@ -49,7 +47,7 @@ library(viridis)
 
 
 ```{r nyc_data}
-nydata <- rgdal::readOGR("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week7/Lab_files/nydata.geojson")
+nydata <- rgdal::readOGR("https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson")
 
 # Let's look at the data
 head(nydata@data)

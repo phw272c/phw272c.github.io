@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-04-15T21:49:12-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Week 7 - Spatial regression of areal data</title><link href="http://localhost:4000/week-7/" rel="alternate" type="text/html" title="Week 7 - Spatial regression of areal data" /><published>2022-04-14T00:00:00-07:00</published><updated>2022-04-14T00:00:00-07:00</updated><id>http://localhost:4000/week-7</id><content type="html" xml:base="http://localhost:4000/week-7/"><![CDATA[<h2 id="week-7---spatial-regression-of-areal-data">Week 7 - spatial regression of areal data</h2>
-
-<p>You now have the skills to:</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-04-15T22:01:55-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Week 7 - Spatial regression of areal data</title><link href="http://localhost:4000/week-7/" rel="alternate" type="text/html" title="Week 7 - Spatial regression of areal data" /><published>2022-04-14T00:00:00-07:00</published><updated>2022-04-14T00:00:00-07:00</updated><id>http://localhost:4000/week-7</id><content type="html" xml:base="http://localhost:4000/week-7/"><![CDATA[<p>You now have the skills to:</p>
 
 <ul>
   <li>
@@ -41,67 +39,17 @@ hazardous waste sites as potential exposures.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired by the end of 2023,
-## plan transition to sf/stars/terra functions using GDAL and PROJ
-## at your earliest convenience.
-## 
-## rgdal: version: 1.5-28, (SVN revision 1158)
-## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
-## Path to GDAL shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/gdal
-## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
-## Path to PROJ shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
-## PROJ CDN enabled: FALSE
-## Linking to sp version:1.4-6
-## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
-## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.
-## Overwritten PROJ_LIB was /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">spdep</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: spData
-
-## To access larger datasets in this package, install the spDataLarge
-## package with: `install.packages('spDataLarge',
-## repos='https://nowosad.github.io/drat/', type='source')`
-
-## Loading required package: sf
-
-## Linking to GEOS 3.9.1, GDAL 3.4.0, PROJ 8.1.1; sf_use_s2() is TRUE
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">spdep</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">spaMM</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">viridis</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Registered S3 methods overwritten by 'registry':
-##   method               from 
-##   print.registry_field proxy
-##   print.registry_entry proxy
-
-## spaMM (Rousset &amp; Ferdy, 2014, version 3.11.3) is loaded.
-## Type 'help(spaMM)' for a short introduction,
-## 'news(package='spaMM')' for news,
-## and 'citation('spaMM')' for proper citation.
-## Further infos, slides, etc. at https://gitlab.mbb.univ-montp2.fr/francois/spamm-ref.
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">viridis</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: viridisLite
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rgdal</span><span class="o">::</span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week7/Lab_files/nydata.geojson"</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rgdal</span><span class="o">::</span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## OGR data source with driver: GeoJSON 
-## Source: "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week7/Lab_files/nydata.geojson", layer: "nydata"
+## Source: "https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson", layer: "nydata"
 ## with 281 features
 ## It has 17 fields
 </code></pre></div></div>
@@ -435,7 +383,7 @@ Bayesian Measures of Model Complexity and Fit (with Discussion), Journal
 of the Royal Statistical Society, Series B 64(4), 583-616.</p>
 
 <p>L.A. Waller and C.A. Gotway (2004). Applied Spatial Statistics for
-Public Health Data. Wiley &amp; Sons.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Week 7 - spatial regression of areal data]]></summary></entry><entry><title type="html">Week 6 - Spatial Regression</title><link href="http://localhost:4000/week-6/" rel="alternate" type="text/html" title="Week 6 - Spatial Regression" /><published>2022-03-29T00:00:00-07:00</published><updated>2022-03-29T00:00:00-07:00</updated><id>http://localhost:4000/week-6</id><content type="html" xml:base="http://localhost:4000/week-6/"><![CDATA[<script type="text/javascript" id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+Public Health Data. Wiley &amp; Sons.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[You now have the skills to:]]></summary></entry><entry><title type="html">Week 6 - Spatial Regression</title><link href="http://localhost:4000/week-6/" rel="alternate" type="text/html" title="Week 6 - Spatial Regression" /><published>2022-03-29T00:00:00-07:00</published><updated>2022-03-29T00:00:00-07:00</updated><id>http://localhost:4000/week-6</id><content type="html" xml:base="http://localhost:4000/week-6/"><![CDATA[<script type="text/javascript" id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 
 <p>In this session we will introduce some concepts of spatial regression.

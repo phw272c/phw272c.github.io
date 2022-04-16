@@ -7,8 +7,8 @@
 <meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Week 7 - Spatial regression of areal data" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Week 7 - spatial regression of areal data" />
-<meta property="og:description" content="Week 7 - spatial regression of areal data" />
+<meta name="description" content="You now have the skills to:" />
+<meta property="og:description" content="You now have the skills to:" />
 <link rel="canonical" href="http://localhost:4000/week-7/" />
 <meta property="og:url" content="http://localhost:4000/week-7/" />
 <meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Week 7 - Spatial regression of areal data" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-04-14T00:00:00-07:00","datePublished":"2022-04-14T00:00:00-07:00","description":"Week 7 - spatial regression of areal data","headline":"Week 7 - Spatial regression of areal data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-7/"},"url":"http://localhost:4000/week-7/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-04-14T00:00:00-07:00","datePublished":"2022-04-14T00:00:00-07:00","description":"You now have the skills to:","headline":"Week 7 - Spatial regression of areal data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-7/"},"url":"http://localhost:4000/week-7/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
 <body>
@@ -30,9 +30,7 @@
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <h2 id="week-7---spatial-regression-of-areal-data">Week 7 - spatial regression of areal data</h2>
-
-<p>You now have the skills to:</p>
+    <p>You now have the skills to:</p>
 
 <ul>
   <li>
@@ -73,67 +71,17 @@ hazardous waste sites as potential exposures.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired by the end of 2023,
-## plan transition to sf/stars/terra functions using GDAL and PROJ
-## at your earliest convenience.
-## 
-## rgdal: version: 1.5-28, (SVN revision 1158)
-## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
-## Path to GDAL shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/gdal
-## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
-## Path to PROJ shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
-## PROJ CDN enabled: FALSE
-## Linking to sp version:1.4-6
-## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
-## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.
-## Overwritten PROJ_LIB was /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">spdep</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: spData
-
-## To access larger datasets in this package, install the spDataLarge
-## package with: `install.packages('spDataLarge',
-## repos='https://nowosad.github.io/drat/', type='source')`
-
-## Loading required package: sf
-
-## Linking to GEOS 3.9.1, GDAL 3.4.0, PROJ 8.1.1; sf_use_s2() is TRUE
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">spdep</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">spaMM</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">viridis</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Registered S3 methods overwritten by 'registry':
-##   method               from 
-##   print.registry_field proxy
-##   print.registry_entry proxy
-
-## spaMM (Rousset &amp; Ferdy, 2014, version 3.11.3) is loaded.
-## Type 'help(spaMM)' for a short introduction,
-## 'news(package='spaMM')' for news,
-## and 'citation('spaMM')' for proper citation.
-## Further infos, slides, etc. at https://gitlab.mbb.univ-montp2.fr/francois/spamm-ref.
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">viridis</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: viridisLite
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rgdal</span><span class="o">::</span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week7/Lab_files/nydata.geojson"</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rgdal</span><span class="o">::</span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## OGR data source with driver: GeoJSON 
-## Source: "https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week7/Lab_files/nydata.geojson", layer: "nydata"
+## Source: "https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson", layer: "nydata"
 ## with 281 features
 ## It has 17 fields
 </code></pre></div></div>
