@@ -3,21 +3,21 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Week 1 - Visualizing spatial data | Applied Spatial Data Science for Public Health</title>
+<title>Lab 0 - Visualizing spatial data | Applied Spatial Data Science for Public Health</title>
 <meta name="generator" content="Jekyll v3.9.1" />
-<meta property="og:title" content="Week 1 - Visualizing spatial data" />
+<meta property="og:title" content="Lab 0 - Visualizing spatial data" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
-<meta property="og:description" content="Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
-<link rel="canonical" href="http://localhost:4000/week-1/" />
-<meta property="og:url" content="http://localhost:4000/week-1/" />
+<meta name="description" content="This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
+<meta property="og:description" content="This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment." />
+<link rel="canonical" href="http://localhost:4000/lab-0/" />
+<meta property="og:url" content="http://localhost:4000/lab-0/" />
 <meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2022-02-24T00:00:00-08:00" />
+<meta property="article:published_time" content="2023-03-03T00:00:00-08:00" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Week 1 - Visualizing spatial data" />
+<meta property="twitter:title" content="Lab 0 - Visualizing spatial data" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-24T00:00:00-08:00","datePublished":"2022-02-24T00:00:00-08:00","description":"Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment.","headline":"Week 1 - Visualizing spatial data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-1/"},"url":"http://localhost:4000/week-1/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-03-03T00:00:00-08:00","datePublished":"2023-03-03T00:00:00-08:00","description":"This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment.","headline":"Lab 0 - Visualizing spatial data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/lab-0/"},"url":"http://localhost:4000/lab-0/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
 <body>
@@ -26,20 +26,17 @@
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">Week 1 - Visualizing spatial data</h1>
+    <h1 class="post-title p-name" itemprop="name headline">Lab 0 - Visualizing spatial data</h1>
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>Welcome to week 1 of spatial analysis for public health. This week we
-will be learning about the process of moving from visualizing spatial
-data through to exploration and analysis. We will get our hands dirty
-with some R code and learn how to make beautiful maps. This week’s
-lecture will focus on some of the concepts behind spatial epidemiology.
-The code below covers loading and visualizing spatial data in R. You
-will then have a chance to apply that code to new data and questions in
-this week’s assignment.</p>
-
-<h2 id="lab-1-working-with-spatial-data-in-r">Lab 1: Working with Spatial Data in R</h2>
+    <p>This week we will be learning about the process of moving from
+visualizing spatial data through to exploration and analysis. We will
+get our hands dirty with some R code and learn how to make beautiful
+maps. This week’s lecture will focus on some of the concepts behind
+spatial epidemiology. The code below covers loading and visualizing
+spatial data in R. You will then have a chance to apply that code to new
+data and questions in this week’s assignment.</p>
 
 <p>The simplest data is a table with coordinates (i.e. point data). For
 this assignment, we’ll work with malaria prevalence point data from
@@ -55,22 +52,22 @@ conducted in 2009.</p>
 </span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired by the end of 2023,
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired during 2023,
 ## plan transition to sf/stars/terra functions using GDAL and PROJ
 ## at your earliest convenience.
-## 
-## rgdal: version: 1.5-28, (SVN revision 1158)
+## See https://r-spatial.org/r/2022/04/12/evolution.html and https://github.com/r-spatial/evolution
+## rgdal: version: 1.6-5, (SVN revision 1199)
 ## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
-## Path to GDAL shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/gdal
+## Loaded GDAL runtime: GDAL 3.5.3, released 2022/10/21
+## Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/rgdal/gdal
+##  GDAL does not use iconv for recoding strings.
 ## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
-## Path to PROJ shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
+## Loaded PROJ runtime: Rel. 9.1.0, September 1st, 2022, [PJ_VERSION: 910]
+## Path to PROJ shared files: /Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/rgdal/proj
 ## PROJ CDN enabled: FALSE
-## Linking to sp version:1.4-6
+## Linking to sp version:1.6-0
 ## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
 ## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.
-## Overwritten PROJ_LIB was /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
@@ -258,6 +255,10 @@ code</p>
 </span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w"> 
 </span></code></pre></div></div>
 
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
 <p>Now we can plot the point data in context</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot both country and data points</span><span class="w">
@@ -392,7 +393,13 @@ of some select raster data, such as elevation and bioclimatic layers. To
 get hold of elevation for Ethiopia, use the following</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"alt"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
-</span><span class="n">elev</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("alt", country = "ETH"): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">elev</span><span class="w">
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
@@ -460,7 +467,7 @@ both important packages for spatial analysis.</p>
 <p>R studio also have a fantastic
 <a href="https://rstudio.github.io/leaflet/">site</a> outlining the use of leaflet</p>
 
-  </div><a class="u-url" href="/week-1/" hidden></a>
+  </div><a class="u-url" href="/lab-0/" hidden></a>
 </article>
 
       </div>

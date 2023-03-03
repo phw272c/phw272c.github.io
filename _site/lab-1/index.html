@@ -3,21 +3,21 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Week 2 - Manipulating spatial data | Applied Spatial Data Science for Public Health</title>
+<title>Lab 1 - Manipulating spatial data | Applied Spatial Data Science for Public Health</title>
 <meta name="generator" content="Jekyll v3.9.1" />
-<meta property="og:title" content="Week 2 - Manipulating spatial data" />
+<meta property="og:title" content="Lab 1 - Manipulating spatial data" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="In week 1, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters." />
-<meta property="og:description" content="In week 1, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters." />
-<link rel="canonical" href="http://localhost:4000/week-2/" />
-<meta property="og:url" content="http://localhost:4000/week-2/" />
+<meta name="description" content="In Lab 0, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters." />
+<meta property="og:description" content="In Lab 0, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters." />
+<link rel="canonical" href="http://localhost:4000/lab-1/" />
+<meta property="og:url" content="http://localhost:4000/lab-1/" />
 <meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
 <meta property="og:type" content="article" />
-<meta property="article:published_time" content="2022-02-25T00:00:00-08:00" />
+<meta property="article:published_time" content="2023-03-03T00:00:00-08:00" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Week 2 - Manipulating spatial data" />
+<meta property="twitter:title" content="Lab 1 - Manipulating spatial data" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-25T00:00:00-08:00","datePublished":"2022-02-25T00:00:00-08:00","description":"In week 1, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters.","headline":"Week 2 - Manipulating spatial data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/week-2/"},"url":"http://localhost:4000/week-2/"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-03-03T00:00:00-08:00","datePublished":"2023-03-03T00:00:00-08:00","description":"In Lab 0, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters.","headline":"Lab 1 - Manipulating spatial data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/lab-1/"},"url":"http://localhost:4000/lab-1/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
 <body>
@@ -26,11 +26,11 @@
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">Week 2 - Manipulating spatial data</h1>
+    <h1 class="post-title p-name" itemprop="name headline">Lab 1 - Manipulating spatial data</h1>
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>In week 1, you got to load up some spatial data and make some pretty
+    <p>In Lab 0, you got to load up some spatial data and make some pretty
 maps. This week, we will be stepping up a gear and learning how to crop
 and subset spatial data. We will also be go through the process of
 resampling rasters.</p>
@@ -66,6 +66,10 @@ function from the <code class="language-plaintext highlighter-rouge">raster</cod
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
 
 <p>You can subset a SpatialPolygonsDataFrame just like a data frame. Let’s
 subset the data first by row/polygon</p>
@@ -176,10 +180,26 @@ a look</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Coordinate Reference System:
 ## Deprecated Proj.4 representation: +proj=longlat +datum=WGS84 +no_defs 
 ## WKT2 2019 representation:
-## GEOGCRS["unknown",
-##     DATUM["World Geodetic System 1984",
+## GEOGCRS["WGS 84",
+##     ENSEMBLE["World Geodetic System 1984 ensemble",
+##         MEMBER["World Geodetic System 1984 (Transit)",
+##             ID["EPSG",1166]],
+##         MEMBER["World Geodetic System 1984 (G730)",
+##             ID["EPSG",1152]],
+##         MEMBER["World Geodetic System 1984 (G873)",
+##             ID["EPSG",1153]],
+##         MEMBER["World Geodetic System 1984 (G1150)",
+##             ID["EPSG",1154]],
+##         MEMBER["World Geodetic System 1984 (G1674)",
+##             ID["EPSG",1155]],
+##         MEMBER["World Geodetic System 1984 (G1762)",
+##             ID["EPSG",1156]],
+##         MEMBER["World Geodetic System 1984 (G2139)",
+##             ID["EPSG",1309]],
 ##         ELLIPSOID["WGS 84",6378137,298.257223563,
-##             LENGTHUNIT["metre",1]],
+##             LENGTHUNIT["metre",1],
+##             ID["EPSG",7030]],
+##         ENSEMBLEACCURACY[2.0],
 ##         ID["EPSG",6326]],
 ##     PRIMEM["Greenwich",0,
 ##         ANGLEUNIT["degree",0.0174532925199433],
@@ -192,7 +212,11 @@ a look</p>
 ##         AXIS["latitude",north,
 ##             ORDER[2],
 ##             ANGLEUNIT["degree",0.0174532925199433,
-##                 ID["EPSG",9122]]]]
+##                 ID["EPSG",9122]]],
+##     USAGE[
+##         SCOPE["unknown"],
+##         AREA["World."],
+##         BBOX[-90,-180,90,180]]]
 </code></pre></div></div>
 
 <p>To reproject to the same CRS, you can use the <code class="language-plaintext highlighter-rouge">spTransform</code> function
@@ -395,7 +419,13 @@ are going to load 2 raster file, elevation and land use for Ethiopia.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Get elevation using the getData function from the raster package</span><span class="w">
 </span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"alt"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("alt", country = "ETH"): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p><img src="../images/week-2/unnamed-chunk-18-1.png" alt="" /></p>
@@ -582,7 +612,21 @@ format instead of Shapefile. <code class="language-plaintext highlighter-rouge">
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## OGR data source with driver: GeoJSON 
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## OGR data source with driver: GeoJSON 
 ## Source: "https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson", layer: "ETH_waterbodies"
 ## with 380 features
 ## It has 5 fields
@@ -704,7 +748,7 @@ work.</p>
 <p>Can <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/cheat_sheet_week2.R">be found
 here</a></p>
 
-  </div><a class="u-url" href="/week-2/" hidden></a>
+  </div><a class="u-url" href="/lab-1/" hidden></a>
 </article>
 
       </div>

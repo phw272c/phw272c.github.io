@@ -1,5 +1,5 @@
 ---
-title: "Week 2 - Manipulating spatial data"
+title: "Lab 1 - Manipulating spatial data"
 output:
   md_document:
     variant: markdown
@@ -13,7 +13,7 @@ webshot::install_phantomjs()
 knitr::opts_chunk$set(fig.path = "../images/week-2/")
 ```
   
-In week 1, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters.
+In Lab 0, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters.
 
 ## Learning outcomes
 

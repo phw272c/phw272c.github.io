@@ -1,4 +1,1155 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2022-04-15T22:01:55-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Week 7 - Spatial regression of areal data</title><link href="http://localhost:4000/week-7/" rel="alternate" type="text/html" title="Week 7 - Spatial regression of areal data" /><published>2022-04-14T00:00:00-07:00</published><updated>2022-04-14T00:00:00-07:00</updated><id>http://localhost:4000/week-7</id><content type="html" xml:base="http://localhost:4000/week-7/"><![CDATA[<p>You now have the skills to:</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-03T09:55:36-08:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 0 - Visualizing spatial data</title><link href="http://localhost:4000/lab-0/" rel="alternate" type="text/html" title="Lab 0 - Visualizing spatial data" /><published>2023-03-03T00:00:00-08:00</published><updated>2023-03-03T00:00:00-08:00</updated><id>http://localhost:4000/lab-0</id><content type="html" xml:base="http://localhost:4000/lab-0/"><![CDATA[<p>This week we will be learning about the process of moving from
+visualizing spatial data through to exploration and analysis. We will
+get our hands dirty with some R code and learn how to make beautiful
+maps. This week’s lecture will focus on some of the concepts behind
+spatial epidemiology. The code below covers loading and visualizing
+spatial data in R. You will then have a chance to apply that code to new
+data and questions in this week’s assignment.</p>
+
+<p>The simplest data is a table with coordinates (i.e. point data). For
+this assignment, we’ll work with malaria prevalence point data from
+Ethiopia. These data were downloaded from the Malaria Atlas Project data
+repository and were originally collected as part of <a href="https://link.springer.com/article/10.1186/1475-2875-10-25">a
+study</a>
+conducted in 2009.</p>
+
+<p>First get the necessary libraries for this week</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired during 2023,
+## plan transition to sf/stars/terra functions using GDAL and PROJ
+## at your earliest convenience.
+## See https://r-spatial.org/r/2022/04/12/evolution.html and https://github.com/r-spatial/evolution
+## rgdal: version: 1.6-5, (SVN revision 1199)
+## Geospatial Data Abstraction Library extensions to R successfully loaded
+## Loaded GDAL runtime: GDAL 3.5.3, released 2022/10/21
+## Path to GDAL shared files: /Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/rgdal/gdal
+##  GDAL does not use iconv for recoding strings.
+## GDAL binary built with GEOS: TRUE 
+## Loaded PROJ runtime: Rel. 9.1.0, September 1st, 2022, [PJ_VERSION: 910]
+## Path to PROJ shared files: /Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/rgdal/proj
+## PROJ CDN enabled: FALSE
+## Linking to sp version:1.6-0
+## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
+## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Import the data</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The columns should be self-explanatory, but briefly: * examined =
+numbers tested * pf_pos = of those tested, how many were positive for
+Plasmodium falciparum malaria * pf_pr = Plasmodium falciparum parasite
+rate which is the same as infection prevalence or proportion infected
+(i.e. pf_pos / examined) * longitude = longitude of school in decimal
+degrees * latitude = latitude of schoolin decimal degrees</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Look at the first few rows</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##    country country_id continent_id site_id          site_name latitude
+## 1 Ethiopia        ETH       Africa    6694        Dole School   5.9014
+## 2 Ethiopia        ETH       Africa    8017     Gongoma School   6.3175
+## 3 Ethiopia        ETH       Africa   12873      Buriya School   7.5674
+## 4 Ethiopia        ETH       Africa    6533       Arero School   4.7192
+## 5 Ethiopia        ETH       Africa    4150     Gandile School   4.8930
+## 6 Ethiopia        ETH       Africa    1369 Melka Amana School   6.2461
+##   longitude rural_urban year_start lower_age upper_age examined pf_pos
+## 1   38.9412     UNKNOWN       2009         4        15      220      0
+## 2   39.8362     UNKNOWN       2009         4        15      216      0
+## 3   40.7521     UNKNOWN       2009         4        15      127      0
+## 4   38.7650     UNKNOWN       2009         4        15       56      0
+## 5   37.3632     UNKNOWN       2009         4        15      219      0
+## 6   39.7891     UNKNOWN       2009         4        15      215      1
+##         pf_pr     method
+## 1 0.000000000 Microscopy
+## 2 0.000000000 Microscopy
+## 3 0.000000000 Microscopy
+## 4 0.000000000 Microscopy
+## 5 0.000000000 Microscopy
+## 6 0.004651163 Microscopy
+##                                                                                                                                title1
+## 1 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+## 2 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+## 3 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+## 4 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+## 5 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+## 6 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
+##                                                                                                                                                                                                                                                                                               citation1
+## 1 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
+## 2 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
+## 3 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
+## 4 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
+## 5 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
+## 6 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create a histogram of the prevalence</span><span class="w">
+</span><span class="n">hist</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="p">,</span><span class="w"> </span><span class="n">breaks</span><span class="o">=</span><span class="m">20</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-3-1.png" alt="" /></p>
+
+<h1 id="plotting-and-mapping-spatial-data">Plotting and mapping spatial data</h1>
+
+<p>It is possible to use R’s base graphics to plot points, treating them
+like any other data with x and y coordinates. For example, to get a plot
+of the points alone</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
+     </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">)</span><span class="w"> </span><span class="c1">#boring!</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-4-1.png" alt="" /></p>
+
+<p>You might want to vary the size of the circle as a function of a
+variable. For example, if we wanted to plot points with size relative to
+prevalence we can use the expansion argument <code class="language-plaintext highlighter-rouge">cex</code></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Use the cex function to plot circle size as a function of a variable. In this case prevalence. As the values are very small we can multiply by an arbitrary amount for visualization purposes</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
+     </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w">
+     </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-5-1.png" alt="" /></p>
+
+<h2 id="working-with-spatial-objects">Working with ‘Spatial’ objects</h2>
+
+<p>In R, it is sometimes useful to package spatial data up into a ‘Spatial’
+class of object using the <code class="language-plaintext highlighter-rouge">sp</code> package. This often makes it easier to
+work with and is often a requirement for other functions. The
+<a href="https://cran.r-project.org/web/packages/sp/index.html">sp</a> package
+allows you to put your data into specific spatial objects, such as
+<code class="language-plaintext highlighter-rouge">SpatialPoints</code> or <code class="language-plaintext highlighter-rouge">SpatialPolygons</code>. In addition, if your data are more
+than just the geometry, i.e. if you have data associated with each
+spatial feature, you can create spatial DataFrames,
+i.e. <code class="language-plaintext highlighter-rouge">SpatialPointsDataFrames</code> and <code class="language-plaintext highlighter-rouge">SpatialPolygonsDataFrames</code>. For
+example, if we wanted to create a SpatalPointsDataFrame using the
+Ethiopia data:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">SpatialPointsDataFrame</span><span class="p">(</span><span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)],</span><span class="w">
+                                      </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"examined"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pos"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)],</span><span class="w">
+                                      </span><span class="n">proj4string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CRS</span><span class="p">(</span><span class="s2">"+init=epsg:4326"</span><span class="p">))</span><span class="w"> </span><span class="c1"># sets the projection to WGS 1984 using lat/long. Optional but good to specify</span><span class="w">
+
+</span><span class="c1"># Summary of object</span><span class="w">
+</span><span class="n">ETH_malaria_data_SPDF</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPointsDataFrame 
+## features    : 203 
+## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
+## crs         : +proj=longlat +datum=WGS84 +no_defs 
+## variables   : 3
+## names       : examined, pf_pos,       pf_pr 
+## min values  :       37,      0,           0 
+## max values  :      221,     14, 0.127272727
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># SPDFs partition data elements, e.g. the coordinates are stored separately from the data</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">coords</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##      longitude latitude
+## [1,]   38.9412   5.9014
+## [2,]   39.8362   6.3175
+## [3,]   40.7521   7.5674
+## [4,]   38.7650   4.7192
+## [5,]   37.3632   4.8930
+## [6,]   39.7891   6.2461
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">data</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   examined pf_pos       pf_pr
+## 1      220      0 0.000000000
+## 2      216      0 0.000000000
+## 3      127      0 0.000000000
+## 4       56      0 0.000000000
+## 5      219      0 0.000000000
+## 6      215      1 0.004651163
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># You can quickly access the data frame as per a standard data frame, e.g.</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">pf_pr</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.000000000 0.000000000 0.000000000 0.000000000 0.000000000 0.004651163
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># You can use the plot or spplot function to get quick plots</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-6-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">spplot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">zcol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-6-2.png" alt="" /></p>
+
+<p>Let’s have a look at SpatialPolygonsDataFrames. To load a polygon
+shapefile (or other file types), you can use the <code class="language-plaintext highlighter-rouge">readOGR</code> function from
+the <code class="language-plaintext highlighter-rouge">rgdal</code> package. For example, if you wanted to load in the province
+boundaries for Ethiopia shapefile <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> from the
+<code class="language-plaintext highlighter-rouge">ETH_Adm_1_shapefile</code> folder on
+<a href="https://github.com/phw272c/phw272c.github.io/tree/master/data/ETH_Adm_1_shapefile">GitHub</a>,
+assuming you have downloaded the folder of files you would use the
+following command</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ETH_Adm_1 &lt;- readOGR("ETH_Adm_1_shapefile", "ETH_Adm_1")
+</code></pre></div></div>
+
+<p>As it happens, admin boundary data is accessible using the <code class="language-plaintext highlighter-rouge">getData</code>
+function from the <code class="language-plaintext highlighter-rouge">raster</code> package. Be careful as some other packages
+also have a <code class="language-plaintext highlighter-rouge">getData</code> function, so to specify that you want to use the
+<code class="language-plaintext highlighter-rouge">getData</code> function from the <code class="language-plaintext highlighter-rouge">raster</code> package you can use the following
+code</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># You first need the ISO3 codes for the country of interest. You can access these using `ccodes()`. For Ethiopia, the ISO3 is ETH</span><span class="w">
+
+</span><span class="c1"># The getData function then allows you to retrieve the relevant admin level boundaries from GADM.</span><span class="w">
+</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w"> 
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<p>Now we can plot the point data in context</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot both country and data points</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
+</span><span class="n">points</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
+     </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w">
+     </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">,</span><span class="w">
+     </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-8-1.png" alt="" /></p>
+
+<h1 id="plotting-data-using-web-maps">Plotting data using web maps</h1>
+
+<p>Rather than just relying on R base graphics, we can easily create
+webmaps using the <code class="language-plaintext highlighter-rouge">leaflet</code> package. There are many basemaps available.
+See <a href="https://leaflet-extras.github.io/leaflet-providers/preview/">here</a>.
+For any map, identify the Provider name, e.g. ”OpenStreetMap.Mapnik”, by
+clicking on the map.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Define your basemap
+basemap &lt;- leaflet() %&gt;% addTiles()
+basemap
+
+# Or choose another basemap
+basemap &lt;- leaflet() %&gt;% addProviderTiles("Esri.WorldImagery")
+basemap
+
+#Let's choose a simple one
+basemap &lt;- leaflet() %&gt;% addProviderTiles("CartoDB.Positron")
+</code></pre></div></div>
+
+<p>You can use the ‘piping’ command %&gt;% to add layers. As our point and
+polygon data are already ‘Spatial’ object this is easy</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addPolygons(data=ETH_Adm_1)
+
+
+# to change the colors/line weight
+basemap %&gt;% addPolygons(data=ETH_Adm_1, color = "red", 
+                        weight = 1, fillOpacity = 0.2)
+
+#You can also add popups
+basemap %&gt;% addPolygons(data=ETH_Adm_1, 
+                        popup = ETH_Adm_1$NAME_1)
+
+# If you want to add points as well
+basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2,
+                        popup = ETH_Adm_1$NAME_1) %&gt;%
+  
+            addCircleMarkers(data=ETH_malaria_data_SPDF,
+                             color="red", radius = 2)
+</code></pre></div></div>
+
+<p>The leaflet package also has some nice functions for generate color
+palettes that map to a variable you want to display. For example, if we
+wanted to create a color ramp relative to prevalence we could use the
+<code class="language-plaintext highlighter-rouge">colorQuantile</code> function. See ?colorQuantile for other ways to build
+color palettes such as <code class="language-plaintext highlighter-rouge">colorNumeric</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>library(wesanderson) # for a nice color palette
+colorPal &lt;- colorNumeric(wes_palette("Zissou1")[1:5], ETH_malaria_data_SPDF$pf_pr, n = 5)
+
+# colorPal is now a function you can apply to get the corresponding
+# color for a value
+colorPal(0.1)
+
+basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
+                        popup = ETH_Adm_1$NAME_1,
+                        color = "gray") %&gt;%
+  
+  addCircleMarkers(data=ETH_malaria_data_SPDF,
+                   color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
+                   radius = 2,
+                   popup = as.character(ETH_malaria_data_SPDF$pf_pr))
+</code></pre></div></div>
+
+<p>You might want to add a legend. This just goes on as another layer on
+the map. First define the labels. In this case, we are using quintiles.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
+                        popup = ETH_Adm_1$NAME_1,
+                        color = "gray") %&gt;%
+  
+  addCircleMarkers(data=ETH_malaria_data_SPDF,
+                   color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
+                   radius = 2,
+                   popup = as.character(ETH_malaria_data_SPDF$pf_pr)) %&gt;%
+  
+  addLegend(pal = colorPal, 
+            title = "Prevalence",
+            values = ETH_malaria_data_SPDF$pf_pr )
+</code></pre></div></div>
+
+<p>For more complex popups, you can define the HTML</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
+                        popup = ETH_Adm_1$NAME_1,
+                        color = "gray") %&gt;%
+  
+  addCircleMarkers(data=ETH_malaria_data_SPDF,
+                   color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
+                   radius = 2,
+                   popup = paste("&lt;p&gt;","Prevalence:",
+                                 round(ETH_malaria_data_SPDF$pf_pr,2),
+                                 "&lt;p&gt;")) %&gt;%
+                                 
+ addLegend(pal = colorPal, 
+            title = "Prevalence",
+            values = ETH_malaria_data_SPDF$pf_pr )
+</code></pre></div></div>
+
+<h1 id="plotting-raster-data">Plotting raster data</h1>
+
+<p>If you have a local raster file (e.g. a .tif file), you can use the
+<code class="language-plaintext highlighter-rouge">raster</code> command to load the file into R. For example, if you download
+the
+<a href="https://github.com/phw272c/phw272c.github.io/blob/master/data/elev_ETH.tif?raw=true">“elev_ETH.tif”</a>
+file from this week’s data, you would use the following to load from a
+local source:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>elev &lt;- raster("elev_ETH.tif")
+</code></pre></div></div>
+
+<p>You can also load using a URL, e.g.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>elev &lt;- raster("https://github.com/phw272c/phw272c.github.io/blob/master/data/elev_ETH.tif?raw=true")
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">getData</code> functon from the <code class="language-plaintext highlighter-rouge">raster</code> package allows you to get hold
+of some select raster data, such as elevation and bioclimatic layers. To
+get hold of elevation for Ethiopia, use the following</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"alt"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("alt", country = "ETH"): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">elev</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : ETH_msk_alt.grd 
+## names      : ETH_msk_alt 
+## values     : -189, 4420  (min, max)
+</code></pre></div></div>
+
+<p>You can plot using the plot function</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">elev</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-1/unnamed-chunk-10-1.png" alt="" /></p>
+
+<p>Alternatively, you can use leaflet</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addRasterImage(elev)
+</code></pre></div></div>
+
+<p>If you want to add a legend, you have to define the color palette first</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Define palette
+raster_colorPal &lt;- colorNumeric(topo.colors(64), values(elev), na.color = NA)
+
+# Plot
+basemap %&gt;% addRasterImage(elev, color = raster_colorPal) %&gt;%
+addLegend(values = values(elev), pal = raster_colorPal)
+</code></pre></div></div>
+
+<p>If you want to export the data, there are several options.</p>
+
+<ol>
+  <li>
+    <p>Export button in the Viewer pane. Using ‘Save as webpage’ creates an
+html file which you can open using a browser.</p>
+  </li>
+  <li>
+    <p>Save as kml for someone to open in Google Earth</p>
+  </li>
+</ol>
+
+<pre><code class="language-{=html}">&lt;!-- --&gt;
+</code></pre>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>library(plotKML)
+plotKML(ETH_malaria_data_SPDF) # see ?plotKML for more options
+</code></pre></div></div>
+
+<h1 id="pop-quiz">Pop quiz</h1>
+
+<p>When using the base graphics to plot point data, how might you make the
+points larger, but still relative to prevalence?</p>
+
+<h2 id="resources">Resources</h2>
+
+<p>The R packages
+<a href="https://cran.r-project.org/web/packages/sp/index.html">sp</a> and
+<a href="https://cran.r-project.org/web/packages/raster/index.html">raster</a> are
+both important packages for spatial analysis.</p>
+
+<p>R studio also have a fantastic
+<a href="https://rstudio.github.io/leaflet/">site</a> outlining the use of leaflet</p>]]></content><author><name></name></author><summary type="html"><![CDATA[This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment.]]></summary></entry><entry><title type="html">Lab 1 - Manipulating spatial data</title><link href="http://localhost:4000/lab-1/" rel="alternate" type="text/html" title="Lab 1 - Manipulating spatial data" /><published>2023-03-03T00:00:00-08:00</published><updated>2023-03-03T00:00:00-08:00</updated><id>http://localhost:4000/lab-1</id><content type="html" xml:base="http://localhost:4000/lab-1/"><![CDATA[<p>In Lab 0, you got to load up some spatial data and make some pretty
+maps. This week, we will be stepping up a gear and learning how to crop
+and subset spatial data. We will also be go through the process of
+resampling rasters.</p>
+
+<h2 id="learning-outcomes">Learning outcomes</h2>
+
+<p>By the end of this week, you will be able to:</p>
+
+<ul>
+  <li>Clip and subset vector and raster data</li>
+  <li>Resample rasters</li>
+  <li>Relate spatial data</li>
+</ul>
+
+<p>Load the necessary libraries for this week</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">geosphere</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rgeos</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">wesanderson</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>First we are going to subset some spatial (polygon) data. For this
+exersize, we are going to use the admin 1 boundaries for Ethiopia we
+used in week 1. As a reminder, we can load these in from a local
+shapefile using the readOGR function, or we can use the handy <code class="language-plaintext highlighter-rouge">getData</code>
+function from the <code class="language-plaintext highlighter-rouge">raster</code> package to access GADM data.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<p>You can subset a SpatialPolygonsDataFrame just like a data frame. Let’s
+subset the data first by row/polygon</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1_cropped</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">[</span><span class="m">1</span><span class="p">,]</span><span class="w">
+
+</span><span class="c1"># Get a summary of the cropped data</span><span class="w">
+</span><span class="n">ETH_Adm_1_cropped</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPolygonsDataFrame 
+## features    : 1 
+## extent      : 38.6394, 38.90624, 8.833486, 9.098195  (xmin, xmax, ymin, ymax)
+## crs         : +proj=longlat +datum=WGS84 +no_defs 
+## variables   : 10
+## names       : GID_0,   NAME_0,   GID_1,      NAME_1,                                     VARNAME_1, NL_NAME_1,    TYPE_1, ENGTYPE_1, CC_1, HASC_1 
+## value       :   ETH, Ethiopia, ETH.1_1, Addis Abeba, Āddīs Ābaba|Addis Ababa|Adis-Abeba|Ādīs Ābeba,        NA, Astedader,      City,   14,  ET.AA
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot over the top of the full dataset</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_Adm_1_cropped</span><span class="p">)</span><span class="w">
+</span><span class="n">lines</span><span class="p">(</span><span class="n">ETH_Adm_1_cropped</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="o">=</span><span class="m">2</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-3-1.png" alt="" /></p>
+
+<p>You can also subset by name. For example, if we wanted to extract the
+polygon representing the boundary of the province “Amhara”</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1_Amhara</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">subset</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">NAME_1</span><span class="o">==</span><span class="s2">"Amhara"</span><span class="p">)</span><span class="w"> </span><span class="c1">#OR ETH_Adm_1[ETH_Adm_1$NAME_1=="Amhara",] will also work</span><span class="w">
+</span><span class="n">ETH_Adm_1_Amhara</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPolygonsDataFrame 
+## features    : 1 
+## extent      : 35.25711, 40.21244, 8.714812, 13.7687  (xmin, xmax, ymin, ymax)
+## crs         : +proj=longlat +datum=WGS84 +no_defs 
+## variables   : 10
+## names       : GID_0,   NAME_0,   GID_1, NAME_1, VARNAME_1, NL_NAME_1, TYPE_1, ENGTYPE_1, CC_1, HASC_1 
+## value       :   ETH, Ethiopia, ETH.3_1, Amhara,     Amara,        NA,  Kilil,     State,   03,  ET.AM
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#Plot the result</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
+</span><span class="n">lines</span><span class="p">(</span><span class="n">ETH_Adm_1_Amhara</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="o">=</span><span class="m">2</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-4-1.png" alt="" /> ### Pop quiz * How would
+you plot all provinces except Amhara? * Try plotting all province using
+leaflet, with Amhara colored red and all others colored orange.</p>
+
+<h2 id="spatial-overlays">Spatial overlays</h2>
+
+<p>Often, we have point and polygon data and wish to relate them. For
+example, we might want to summarize point data over regions. To
+illustrate this, we are going to use the Ethiopia malaria point
+prevalence data and aggregate that to provincial level to get a
+provincial level estimate of prevalence.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Get the point prevalence data from the GitHub repo</span><span class="w">
+</span><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Convert to a SPDF</span><span class="w">
+</span><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">SpatialPointsDataFrame</span><span class="p">(</span><span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)],</span><span class="w">
+                                      </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"examined"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pos"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)],</span><span class="w">
+                                      </span><span class="n">proj4string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CRS</span><span class="p">(</span><span class="s2">"+init=epsg:4326"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p>To identify the Province each point lies within you can use the <code class="language-plaintext highlighter-rouge">over</code>
+function from the <code class="language-plaintext highlighter-rouge">sp</code> package</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ETH_Adm_1_per_point &lt;- over(ETH_malaria_data_SPDF, ETH_Adm_1)
+  Error in .local(x, y, returnList, fn, ...) : identicalCRS(x, y) is not TRUE
+</code></pre></div></div>
+
+<p>This throws an error, because <code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code> and <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> do
+not have exactly the same coordinate reference system (CRS). Let’s take
+a look</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">crs</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Coordinate Reference System:
+## Deprecated Proj.4 representation: +proj=longlat +datum=WGS84 +no_defs 
+## WKT2 2019 representation:
+## GEOGCRS["unknown",
+##     DATUM["World Geodetic System 1984",
+##         ELLIPSOID["WGS 84",6378137,298.257223563,
+##             LENGTHUNIT["metre",1]],
+##         ID["EPSG",6326]],
+##     PRIMEM["Greenwich",0,
+##         ANGLEUNIT["degree",0.0174532925199433],
+##         ID["EPSG",8901]],
+##     CS[ellipsoidal,2],
+##         AXIS["longitude",east,
+##             ORDER[1],
+##             ANGLEUNIT["degree",0.0174532925199433,
+##                 ID["EPSG",9122]]],
+##         AXIS["latitude",north,
+##             ORDER[2],
+##             ANGLEUNIT["degree",0.0174532925199433,
+##                 ID["EPSG",9122]]]]
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">crs</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Coordinate Reference System:
+## Deprecated Proj.4 representation: +proj=longlat +datum=WGS84 +no_defs 
+## WKT2 2019 representation:
+## GEOGCRS["WGS 84",
+##     ENSEMBLE["World Geodetic System 1984 ensemble",
+##         MEMBER["World Geodetic System 1984 (Transit)",
+##             ID["EPSG",1166]],
+##         MEMBER["World Geodetic System 1984 (G730)",
+##             ID["EPSG",1152]],
+##         MEMBER["World Geodetic System 1984 (G873)",
+##             ID["EPSG",1153]],
+##         MEMBER["World Geodetic System 1984 (G1150)",
+##             ID["EPSG",1154]],
+##         MEMBER["World Geodetic System 1984 (G1674)",
+##             ID["EPSG",1155]],
+##         MEMBER["World Geodetic System 1984 (G1762)",
+##             ID["EPSG",1156]],
+##         MEMBER["World Geodetic System 1984 (G2139)",
+##             ID["EPSG",1309]],
+##         ELLIPSOID["WGS 84",6378137,298.257223563,
+##             LENGTHUNIT["metre",1],
+##             ID["EPSG",7030]],
+##         ENSEMBLEACCURACY[2.0],
+##         ID["EPSG",6326]],
+##     PRIMEM["Greenwich",0,
+##         ANGLEUNIT["degree",0.0174532925199433],
+##         ID["EPSG",8901]],
+##     CS[ellipsoidal,2],
+##         AXIS["longitude",east,
+##             ORDER[1],
+##             ANGLEUNIT["degree",0.0174532925199433,
+##                 ID["EPSG",9122]]],
+##         AXIS["latitude",north,
+##             ORDER[2],
+##             ANGLEUNIT["degree",0.0174532925199433,
+##                 ID["EPSG",9122]]],
+##     USAGE[
+##         SCOPE["unknown"],
+##         AREA["World."],
+##         BBOX[-90,-180,90,180]]]
+</code></pre></div></div>
+
+<p>To reproject to the same CRS, you can use the <code class="language-plaintext highlighter-rouge">spTransform</code> function
+from the <code class="language-plaintext highlighter-rouge">sp</code> package</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spTransform</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">crs</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">))</span><span class="w">
+
+</span><span class="c1"># Check the new;y projected object</span><span class="w">
+</span><span class="n">ETH_malaria_data_SPDF</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPointsDataFrame 
+## features    : 203 
+## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
+## crs         : +proj=longlat +datum=WGS84 +no_defs 
+## variables   : 3
+## names       : examined, pf_pos,       pf_pr 
+## min values  :       37,      0,           0 
+## max values  :      221,     14, 0.127272727
+</code></pre></div></div>
+
+<p>Now we can re-run the over command</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1_per_point</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">over</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>This gives us a table where each row represents a point from
+<code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code> and columns represent the data from <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code>.
+Let’s take a look</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">ETH_Adm_1_per_point</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   GID_0   NAME_0   GID_1 NAME_1 VARNAME_1 NL_NAME_1 TYPE_1 ENGTYPE_1 CC_1
+## 1   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
+## 2   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
+## 3   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
+## 4   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
+## 5   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
+## 6   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
+##   HASC_1
+## 1  ET.OR
+## 2  ET.OR
+## 3  ET.OR
+## 4  ET.OR
+## 5  ET.OR
+## 6  ET.OR
+</code></pre></div></div>
+
+<p>Now we can use this to calculate admin unit specific statistics. We
+might be interested in the number of sites per admin unit. To get that,
+we could just create a frequency table</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">table</span><span class="p">(</span><span class="n">ETH_Adm_1_per_point</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+## Benshangul-Gumaz  Gambela Peoples           Oromia 
+##                1                1              201
+</code></pre></div></div>
+
+<p>Or we can use the <code class="language-plaintext highlighter-rouge">tapply</code> function for more complex calculations.
+<code class="language-plaintext highlighter-rouge">tapply</code> allows us to apply a function across groups. Let’s look at the
+number examined per admin unit</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Nex_per_Adm1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tapply</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">examined</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1_per_point</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">)</span><span class="w">
+</span><span class="n">Nex_per_Adm1</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Benshangul-Gumaz  Gambela Peoples           Oromia 
+##              109              108            24350
+</code></pre></div></div>
+
+<p>Now let’s get the number of positives by admin unit</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Npos_per_Adm1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tapply</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">pf_pos</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1_per_point</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">)</span><span class="w">
+</span><span class="n">Npos_per_Adm1</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Benshangul-Gumaz  Gambela Peoples           Oromia 
+##                1                0               78
+</code></pre></div></div>
+
+<p>From these numbers, we can calculate the prevalence per province</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">prev_per_Adm1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">Npos_per_Adm1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">Nex_per_Adm1</span><span class="w">
+</span><span class="n">prev_per_Adm1</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Benshangul-Gumaz  Gambela Peoples           Oromia 
+##      0.009174312      0.000000000      0.003203285
+</code></pre></div></div>
+
+<p>If you want to merge these provincial prevalence estimates back into the
+province object <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> it is best practice to create a new table of
+prevalence by provice with unique ID for each province. That unique ID
+can be used to relate and merge the data with <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code>.</p>
+
+<p>First convert your prev_per_Adm1 vector into a dataframe with an ID
+column</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">prev_per_Adm1_df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data.frame</span><span class="p">(</span><span class="n">NAME_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">prev_per_Adm1</span><span class="p">),</span><span class="w">
+                               </span><span class="n">prevalence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">prev_per_Adm1</span><span class="p">,</span><span class="w">
+                               </span><span class="n">row.names</span><span class="o">=</span><span class="kc">NULL</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Now merge this with the <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> data frame</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">merge</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">prev_per_Adm1_df</span><span class="p">,</span><span class="w">
+                  </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"NAME_1"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>You can now see that the additional <code class="language-plaintext highlighter-rouge">prevalence</code> field has been added</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##             NAME_1 GID_0   NAME_0   GID_1
+## 1      Addis Abeba   ETH Ethiopia ETH.1_1
+## 2             Afar   ETH Ethiopia ETH.2_1
+## 3           Amhara   ETH Ethiopia ETH.3_1
+## 4 Benshangul-Gumaz   ETH Ethiopia ETH.4_1
+## 5        Dire Dawa   ETH Ethiopia ETH.5_1
+## 6  Gambela Peoples   ETH Ethiopia ETH.6_1
+##                                       VARNAME_1 NL_NAME_1    TYPE_1 ENGTYPE_1
+## 1 Āddīs Ābaba|Addis Ababa|Adis-Abeba|Ādīs Ābeba      &lt;NA&gt; Astedader      City
+## 2                                                    &lt;NA&gt;     Kilil     State
+## 3                                         Amara      &lt;NA&gt;     Kilil     State
+## 4                              Beneshangul Gumu      &lt;NA&gt;     Kilil     State
+## 5                                                    &lt;NA&gt; Astedader      City
+## 6                                       Gambela      &lt;NA&gt;     Kilil     State
+##   CC_1 HASC_1  prevalence
+## 1   14  ET.AA          NA
+## 2   02  ET.AF          NA
+## 3   03  ET.AM          NA
+## 4   06  ET.BE 0.009174312
+## 5   15  ET.DD          NA
+## 6   12  ET.GA 0.000000000
+</code></pre></div></div>
+
+<p>We can now plot province colored by prevalence. Let’s use the leaflet
+package</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># First define a color palette based on prevalence</span><span class="w">
+</span><span class="n">colorPal</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">wes_palette</span><span class="p">(</span><span class="s2">"Zissou1"</span><span class="p">)[</span><span class="m">1</span><span class="o">:</span><span class="m">5</span><span class="p">],</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">prevalence</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Plot with leaflet</span><span class="w">
+</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> 
+                                         </span><span class="n">col</span><span class="o">=</span><span class="n">colorPal</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">prevalence</span><span class="p">),</span><span class="w">
+                                         </span><span class="n">fillOpacity</span><span class="o">=</span><span class="m">0.6</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+                                         </span><span class="n">addLegend</span><span class="p">(</span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colorPal</span><span class="p">,</span><span class="w"> 
+                                         </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">prevalence</span><span class="p">,</span><span class="w">
+                                         </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Prevalence"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-17-1.png" alt="" /></p>
+
+<h3 id="notes-on-table-joins">Notes on table joins</h3>
+
+<p>In this example, we joined the table of prevalence values for each State
+using the common <code class="language-plaintext highlighter-rouge">NAME_1</code> field Often, however, when you are joining a
+table of data to some spatial data, they are from different sources and
+the common field on which to match rows can be formatted differently.
+For example if you were merging a table of state level data for the USA
+using the state name, your table might have an entry for <code class="language-plaintext highlighter-rouge">California</code>
+which would not match with your spatial data if it has <code class="language-plaintext highlighter-rouge">california</code> as
+the corresponding entry. It is always preferable to use ID codes over
+names for matching as these are often less variable. If you do have to
+use a character string such as name, the following functions are useful
+ways to reformat characters to make sure they match:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">substr</code> - this allows you to extract substrings, for example
+<code class="language-plaintext highlighter-rouge">substr("Cali", 1,2)</code> extracts the first to second characters and
+would give you back <code class="language-plaintext highlighter-rouge">Ca</code></li>
+  <li><code class="language-plaintext highlighter-rouge">tolower</code> - converts all characters to lower case. <code class="language-plaintext highlighter-rouge">toupper</code> is the
+reverse.</li>
+  <li><code class="language-plaintext highlighter-rouge">gsub</code> - allows you to replace characters. For example
+<code class="language-plaintext highlighter-rouge">gsub(" ", "-", "CA USA")</code> would replace any whitespace with <code class="language-plaintext highlighter-rouge">-</code>,
+i.e. in this example it would return <code class="language-plaintext highlighter-rouge">CA-USA</code>.</li>
+</ul>
+
+<p><a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/table_joins.R">Go
+here</a>
+for a worked example of table joins in R.</p>
+
+<h3 id="pop-quiz">Pop quiz</h3>
+
+<ul>
+  <li>Try generating the same plot using a different color palette.</li>
+  <li>How would you plot only the provinces for which you have prevalence
+estimates?</li>
+</ul>
+
+<h1 id="manipulating-raster-data">Manipulating raster data</h1>
+
+<p>You’ve now seen how to subset polygons and relate point and polygon
+data. Now we are going to look at basic manipulations of raster data. We
+are going to load 2 raster file, elevation and land use for Ethiopia.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Get elevation using the getData function from the raster package</span><span class="w">
+</span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"alt"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("alt", country = "ETH"): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-18-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Land use (# For information on land use classifications see http://due.esrin.esa.int/files/GLOBCOVER2009_Validation_Report_2.2.pdf)</span><span class="w">
+</span><span class="n">ETH_land_use</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="p">(</span><span class="s2">"https://github.com/phw272c/phw272c.github.io/raw/master/data/ETH_land_use.tif"</span><span class="p">)</span><span class="w">
+</span><span class="n">ETH_land_use</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 4121, 5384, 22187464  (nrow, ncol, ncell)
+## resolution : 0.002777778, 0.002777778  (x, y)
+## extent     : 33.00139, 47.95694, 3.398611, 14.84583  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : ETH_land_use.tif 
+## names      : ETH_land_use 
+## values     : 11, 210  (min, max)
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#Plot the land use raster</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-18-2.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For a break down of the classes in Ethiopia aka how often each land use type occurs</span><span class="w">
+</span><span class="c1">#(Note: this is just the number of pixels per land use type - NOT acres)</span><span class="w">
+</span><span class="n">table</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">[])</span><span class="w"> 
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+##      11      14      20      30      40      60      90     110     120     130 
+##  105074  336324 2451623 2223305  129786  813227       8 5254463  580793 1900890 
+##     140     150     160     170     180     190     200     210 
+## 1403832 1998099    6765      18   26026    6375 2947145 2003711
+</code></pre></div></div>
+
+<h2 id="resampling-rasters">Resampling rasters</h2>
+
+<p>Its good practice to resample rasters to the same extent and resolution
+(i.e. same grid). This makes it easier to deal with later and to relate
+rasters to each other. The <code class="language-plaintext highlighter-rouge">resample</code> command in the <code class="language-plaintext highlighter-rouge">raster</code> package
+makes this process easy. Here we are going to resample our land use
+raster, but for a deeper dive on resampling rasters of different data
+types, <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/raster_resampling.R">go
+here</a>.
+The default method is bilinear interpolation, which doesn’t make sense
+for our categorical variable, so we should use the nearest neighbour
+function ‘ngb’</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Takes a little time to run..</span><span class="w">
+</span><span class="n">ETH_land_use_resampled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">resample</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="o">=</span><span class="s2">"ngb"</span><span class="p">)</span><span class="w"> 
+
+</span><span class="c1"># Get summaries of both raster objects to check resolution and extent</span><span class="w">
+</span><span class="c1"># and to see whether resampled values look right</span><span class="w">
+</span><span class="n">ETH_land_use_resampled</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : memory
+## names      : ETH_land_use 
+## values     : 11, 210  (min, max)
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : ETH_msk_alt.grd 
+## names      : ETH_msk_alt 
+## values     : -189, 4420  (min, max)
+</code></pre></div></div>
+
+<h2 id="manipulating-rasters">Manipulating rasters</h2>
+
+<p>It is often the case that we want to change the resolution of a raster
+for analysis. For example, for computational reasons we might want to
+work at a coarser resolution. First, let’s check the resolution</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">res</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">)</span><span class="w"> </span><span class="c1"># in decimal degrees. 1 dd roughly 111km at the equator</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.008333333 0.008333333
+</code></pre></div></div>
+
+<p>Let’s aggregate (make lower resolution) by a factor of 10</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev_low_res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">aggregate</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">fact</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w"> </span><span class="c1"># by default, calculates mean</span><span class="w">
+</span><span class="n">res</span><span class="p">(</span><span class="n">ETH_elev_low_res</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.08333333 0.08333333
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev_low_res</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-21-1.png" alt="" /></p>
+
+<p>You can change the values of the pixels easily. For example, if you want
+to change the <code class="language-plaintext highlighter-rouge">ETH_elev</code> raster from its native meters to feet, you can
+mulitply by 3.28</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev_feet</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_elev</span><span class="o">*</span><span class="m">3.28</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev_feet</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-22-1.png" alt="" /></p>
+
+<p>Similarly, you can categorize raster values</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev_categorized</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">cut</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev_categorized</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-23-1.png" alt="" /></p>
+
+<p>If a raster is the same resolution and extent, you can perform joint
+operations on them, for example subtract values of one from another</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">new_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ETH_land_use_resampled</span><span class="w"> </span><span class="c1"># Meaningless! Just for illustrative purposes..</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">new_raster</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-24-1.png" alt="" /></p>
+
+<h1 id="extracting-data-from-rasters">Extracting data from rasters</h1>
+
+<p>Now let’s extract values of elevation at each survey point. You can use
+the <code class="language-plaintext highlighter-rouge">extract</code> function from the raster package and insert the extracted
+values as a new field on <code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">extract</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
+</span><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="c1"># now has 3 variables</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPointsDataFrame 
+## features    : 203 
+## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
+## crs         : +proj=longlat +datum=WGS84 +no_defs 
+## variables   : 4
+## names       : examined, pf_pos,       pf_pr, elev 
+## min values  :       37,      0,           0,  817 
+## max values  :      221,     14, 0.127272727, 2451
+</code></pre></div></div>
+
+<p>You can also extract values using polygons e.g to get admin 1 level
+elevations. You just have to define a function to apply, otherwise you
+get all the pixel values per polygon. For very large rasters, check out
+the <code class="language-plaintext highlighter-rouge">velox</code> package.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">extract</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">fun</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span><span class="w"> </span><span class="c1"># takes a little longer..</span><span class="w">
+</span></code></pre></div></div>
+
+<h1 id="exploratory-spatial-analysis">Exploratory spatial analysis</h1>
+
+<p>We can now have a quick look at the relationship between prevalence and
+elevation. First generate a prevalence variable</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">prevalence</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">pf_pos</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">examined</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Now you can plot the relationship between prevalence and elevation</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ggplot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">data</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">elev</span><span class="p">,</span><span class="w"> </span><span class="n">prevalence</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-28-1.png" alt="" /></p>
+
+<p>You might also be interested in distances to/from other features
+(e.g. health facilities, water). Here we are going to load up a
+waterbody layer (obtained via <a href="http://www.diva-gis.org/Data">http://www.diva-gis.org/Data</a>) and
+calculate distance from each point. In this case, the file is in GeoJSON
+format instead of Shapefile. <code class="language-plaintext highlighter-rouge">readOGR</code> is able to handle GeoJSON easily.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## OGR data source with driver: GeoJSON 
+## Source: "https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson", layer: "ETH_waterbodies"
+## with 380 features
+## It has 5 fields
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPolygonsDataFrame 
+## features    : 380 
+## extent      : 33.00001, 46.80059, 4.232061, 14.55  (xmin, xmax, ymin, ymax)
+## crs         : +proj=longlat +datum=WGS84 +no_defs 
+## variables   : 5
+## names       : ISO,  COUNTRY,                 F_CODE_DES,                             HYC_DESCRI,                  NAME 
+## min values  : ETH, Ethiopia,               Inland Water, Non-Perennial/Intermittent/Fluctuating, ABAY WENZ (BLUE NILE) 
+## max values  : ETH, Ethiopia, Land Subject to Inundation,                    Perennial/Permanent,           ZIWAY HAYK'
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">waterbodies</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-2/unnamed-chunk-29-1.png" alt="" /></p>
+
+<p>The goesphere package has some nice functions such as <code class="language-plaintext highlighter-rouge">dist2Line</code> which
+calculates distance in meters from spatial data recorded using decimal
+degrees. Warning: takes a little while to compute</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dist_to_water</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dist2Line</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">waterbodies</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>This produces a matrix, where each row represents each point in
+<code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code> and the first column is the distance in meters
+to the nearest waterbody</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">dist_to_water</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##       distance      lon      lat  ID
+## [1,] 116153.32 38.03253 6.426888 363
+## [2,] 163802.37 38.56778 7.082849 358
+## [3,] 137683.25 40.65231 8.808335 238
+## [4,] 173427.48 37.62588 5.794201 367
+## [5,]  40482.23 37.00735 4.811708 365
+## [6,] 163677.02 38.56340 7.075962 358
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Can add to your data frame by extracting the first column</span><span class="w">
+</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">dist_to_water</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dist_to_water</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<p>If the objects you are interested in calucating distance to are points
+as opposed to polygons/lines (as above) you first have to calculate the
+distance to every point and then identify the minimum. For example,
+imagine waterbodies data was only available as a point dataset (we can
+fake this by calculating the centroid of each polygon)</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies_points</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">gCentroid</span><span class="p">(</span><span class="n">waterbodies</span><span class="p">,</span><span class="w"> </span><span class="n">byid</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Now calucate a distance matrix showing distances between each
+observation and each waterbody point. the <code class="language-plaintext highlighter-rouge">distm</code> function creates a
+distance matrix between every pair of data points and waterbody points
+in meters.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dist_matrix</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">distm</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">waterbodies_points</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Then use the apply function to apply the ‘minimum’ function to each row
+(as each row represents the distance of every waterbody point from our
+first observation)</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">dist_to_water_point</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">dist_matrix</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">min</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The alternative, much faster, but potentially less accurate method to
+‘distm’, is to use the nn2 function from the RANN package. This allows
+you to calculate the nearest point from each observation and then you
+can use the ‘distGeo’ function from the ‘geosphere’ package to calculate
+the distance in meters. The reason this could be inaccurate, is that the
+nearest point in decimal degrees might not be the nearest in meters as
+degrees are not a good measure of distance. In most cases, you are
+probably OK.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">RANN</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">geosphere</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Get the index of the waterbody points that are nearest to each observation</span><span class="w">
+</span><span class="n">nn</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nn2</span><span class="p">(</span><span class="n">waterbodies_points</span><span class="o">@</span><span class="n">coords</span><span class="p">,</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">coords</span><span class="p">,</span><span class="w"> 
+          </span><span class="n">k</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w">
+          
+</span><span class="c1"># Calculate the distance in meters between each observation and its nearest waterbody point   </span><span class="w">
+</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">dist_to_water_point</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">distGeo</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">coords</span><span class="p">,</span><span class="w">
+        </span><span class="n">waterbodies_points</span><span class="o">@</span><span class="n">coords</span><span class="p">[</span><span class="n">nn</span><span class="o">$</span><span class="n">nn.idx</span><span class="p">,])</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="useful-resources">Useful resources</h2>
+
+<ul>
+  <li>
+    <p>The <a href="https://rspatial.org/raster/pkg/1-introduction.html">raster package
+vignette</a> is
+extremely useful</p>
+  </li>
+  <li>
+    <p>If you are bumping into speed issues extracting/summarizing raster
+data, have a look at the <a href="https://isciences.gitlab.io/exactextractr/">exactextractr
+package</a></p>
+  </li>
+</ul>
+
+<h2 id="key-readings">Key readings</h2>
+
+<p>This week is all about practice. Instead of working through journal
+articles, have a play with your data and get to know how the functions
+work.</p>
+
+<h2 id="pop-quiz-answers">Pop quiz answers</h2>
+
+<p>Can <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/cheat_sheet_week2.R">be found
+here</a></p>]]></content><author><name></name></author><summary type="html"><![CDATA[In Lab 0, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters.]]></summary></entry><entry><title type="html">Week 7 - Spatial regression of areal data</title><link href="http://localhost:4000/week-7/" rel="alternate" type="text/html" title="Week 7 - Spatial regression of areal data" /><published>2022-04-14T00:00:00-07:00</published><updated>2022-04-14T00:00:00-07:00</updated><id>http://localhost:4000/week-7</id><content type="html" xml:base="http://localhost:4000/week-7/"><![CDATA[<p>You now have the skills to:</p>
 
 <ul>
   <li>
@@ -1227,679 +2378,7 @@ process stacked generalization. Journal of The Royal Society Interface.
 Albright J, Gardner WM, Shields C, Sligar A, Schipp MF, Pickering BV.
 Mapping exclusive breastfeeding in Africa between 2000 and 2017. Nature
 medicine. 2019
-Aug;25(8):1205-12.</a></p>]]></content><author><name></name></author><summary type="html"><![CDATA[]]></summary></entry><entry><title type="html">Week 2 - Manipulating spatial data</title><link href="http://localhost:4000/week-2/" rel="alternate" type="text/html" title="Week 2 - Manipulating spatial data" /><published>2022-02-25T00:00:00-08:00</published><updated>2022-02-25T00:00:00-08:00</updated><id>http://localhost:4000/week-2</id><content type="html" xml:base="http://localhost:4000/week-2/"><![CDATA[<p>In week 1, you got to load up some spatial data and make some pretty
-maps. This week, we will be stepping up a gear and learning how to crop
-and subset spatial data. We will also be go through the process of
-resampling rasters.</p>
-
-<h2 id="learning-outcomes">Learning outcomes</h2>
-
-<p>By the end of this week, you will be able to:</p>
-
-<ul>
-  <li>Clip and subset vector and raster data</li>
-  <li>Resample rasters</li>
-  <li>Relate spatial data</li>
-</ul>
-
-<p>Load the necessary libraries for this week</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">geosphere</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">rgeos</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">wesanderson</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>First we are going to subset some spatial (polygon) data. For this
-exersize, we are going to use the admin 1 boundaries for Ethiopia we
-used in week 1. As a reminder, we can load these in from a local
-shapefile using the readOGR function, or we can use the handy <code class="language-plaintext highlighter-rouge">getData</code>
-function from the <code class="language-plaintext highlighter-rouge">raster</code> package to access GADM data.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>You can subset a SpatialPolygonsDataFrame just like a data frame. Let’s
-subset the data first by row/polygon</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1_cropped</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">[</span><span class="m">1</span><span class="p">,]</span><span class="w">
-
-</span><span class="c1"># Get a summary of the cropped data</span><span class="w">
-</span><span class="n">ETH_Adm_1_cropped</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPolygonsDataFrame 
-## features    : 1 
-## extent      : 38.6394, 38.90624, 8.833486, 9.098195  (xmin, xmax, ymin, ymax)
-## crs         : +proj=longlat +datum=WGS84 +no_defs 
-## variables   : 10
-## names       : GID_0,   NAME_0,   GID_1,      NAME_1,                                     VARNAME_1, NL_NAME_1,    TYPE_1, ENGTYPE_1, CC_1, HASC_1 
-## value       :   ETH, Ethiopia, ETH.1_1, Addis Abeba, Āddīs Ābaba|Addis Ababa|Adis-Abeba|Ādīs Ābeba,        NA, Astedader,      City,   14,  ET.AA
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot over the top of the full dataset</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_Adm_1_cropped</span><span class="p">)</span><span class="w">
-</span><span class="n">lines</span><span class="p">(</span><span class="n">ETH_Adm_1_cropped</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="o">=</span><span class="m">2</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-3-1.png" alt="" /></p>
-
-<p>You can also subset by name. For example, if we wanted to extract the
-polygon representing the boundary of the province “Amhara”</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1_Amhara</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">subset</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">NAME_1</span><span class="o">==</span><span class="s2">"Amhara"</span><span class="p">)</span><span class="w"> </span><span class="c1">#OR ETH_Adm_1[ETH_Adm_1$NAME_1=="Amhara",] will also work</span><span class="w">
-</span><span class="n">ETH_Adm_1_Amhara</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPolygonsDataFrame 
-## features    : 1 
-## extent      : 35.25711, 40.21244, 8.714812, 13.7687  (xmin, xmax, ymin, ymax)
-## crs         : +proj=longlat +datum=WGS84 +no_defs 
-## variables   : 10
-## names       : GID_0,   NAME_0,   GID_1, NAME_1, VARNAME_1, NL_NAME_1, TYPE_1, ENGTYPE_1, CC_1, HASC_1 
-## value       :   ETH, Ethiopia, ETH.3_1, Amhara,     Amara,        NA,  Kilil,     State,   03,  ET.AM
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#Plot the result</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
-</span><span class="n">lines</span><span class="p">(</span><span class="n">ETH_Adm_1_Amhara</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span><span class="w"> </span><span class="n">lwd</span><span class="o">=</span><span class="m">2</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-4-1.png" alt="" /> ### Pop quiz * How would
-you plot all provinces except Amhara? * Try plotting all province using
-leaflet, with Amhara colored red and all others colored orange.</p>
-
-<h2 id="spatial-overlays">Spatial overlays</h2>
-
-<p>Often, we have point and polygon data and wish to relate them. For
-example, we might want to summarize point data over regions. To
-illustrate this, we are going to use the Ethiopia malaria point
-prevalence data and aggregate that to provincial level to get a
-provincial level estimate of prevalence.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Get the point prevalence data from the GitHub repo</span><span class="w">
-</span><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
-
-</span><span class="c1"># Convert to a SPDF</span><span class="w">
-</span><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">SpatialPointsDataFrame</span><span class="p">(</span><span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)],</span><span class="w">
-                                      </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"examined"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pos"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)],</span><span class="w">
-                                      </span><span class="n">proj4string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CRS</span><span class="p">(</span><span class="s2">"+init=epsg:4326"</span><span class="p">))</span><span class="w">
-</span></code></pre></div></div>
-
-<p>To identify the Province each point lies within you can use the <code class="language-plaintext highlighter-rouge">over</code>
-function from the <code class="language-plaintext highlighter-rouge">sp</code> package</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ETH_Adm_1_per_point &lt;- over(ETH_malaria_data_SPDF, ETH_Adm_1)
-  Error in .local(x, y, returnList, fn, ...) : identicalCRS(x, y) is not TRUE
-</code></pre></div></div>
-
-<p>This throws an error, because <code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code> and <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> do
-not have exactly the same coordinate reference system (CRS). Let’s take
-a look</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">crs</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Coordinate Reference System:
-## Deprecated Proj.4 representation: +proj=longlat +datum=WGS84 +no_defs 
-## WKT2 2019 representation:
-## GEOGCRS["unknown",
-##     DATUM["World Geodetic System 1984",
-##         ELLIPSOID["WGS 84",6378137,298.257223563,
-##             LENGTHUNIT["metre",1]],
-##         ID["EPSG",6326]],
-##     PRIMEM["Greenwich",0,
-##         ANGLEUNIT["degree",0.0174532925199433],
-##         ID["EPSG",8901]],
-##     CS[ellipsoidal,2],
-##         AXIS["longitude",east,
-##             ORDER[1],
-##             ANGLEUNIT["degree",0.0174532925199433,
-##                 ID["EPSG",9122]]],
-##         AXIS["latitude",north,
-##             ORDER[2],
-##             ANGLEUNIT["degree",0.0174532925199433,
-##                 ID["EPSG",9122]]]]
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">crs</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Coordinate Reference System:
-## Deprecated Proj.4 representation: +proj=longlat +datum=WGS84 +no_defs 
-## WKT2 2019 representation:
-## GEOGCRS["unknown",
-##     DATUM["World Geodetic System 1984",
-##         ELLIPSOID["WGS 84",6378137,298.257223563,
-##             LENGTHUNIT["metre",1]],
-##         ID["EPSG",6326]],
-##     PRIMEM["Greenwich",0,
-##         ANGLEUNIT["degree",0.0174532925199433],
-##         ID["EPSG",8901]],
-##     CS[ellipsoidal,2],
-##         AXIS["longitude",east,
-##             ORDER[1],
-##             ANGLEUNIT["degree",0.0174532925199433,
-##                 ID["EPSG",9122]]],
-##         AXIS["latitude",north,
-##             ORDER[2],
-##             ANGLEUNIT["degree",0.0174532925199433,
-##                 ID["EPSG",9122]]]]
-</code></pre></div></div>
-
-<p>To reproject to the same CRS, you can use the <code class="language-plaintext highlighter-rouge">spTransform</code> function
-from the <code class="language-plaintext highlighter-rouge">sp</code> package</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spTransform</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">crs</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">))</span><span class="w">
-
-</span><span class="c1"># Check the new;y projected object</span><span class="w">
-</span><span class="n">ETH_malaria_data_SPDF</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPointsDataFrame 
-## features    : 203 
-## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
-## crs         : +proj=longlat +datum=WGS84 +no_defs 
-## variables   : 3
-## names       : examined, pf_pos,       pf_pr 
-## min values  :       37,      0,           0 
-## max values  :      221,     14, 0.127272727
-</code></pre></div></div>
-
-<p>Now we can re-run the over command</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1_per_point</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">over</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>This gives us a table where each row represents a point from
-<code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code> and columns represent the data from <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code>.
-Let’s take a look</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">ETH_Adm_1_per_point</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   GID_0   NAME_0   GID_1 NAME_1 VARNAME_1 NL_NAME_1 TYPE_1 ENGTYPE_1 CC_1
-## 1   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
-## 2   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
-## 3   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
-## 4   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
-## 5   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
-## 6   ETH Ethiopia ETH.8_1 Oromia   Oromiya      &lt;NA&gt;  Kilil     State   04
-##   HASC_1
-## 1  ET.OR
-## 2  ET.OR
-## 3  ET.OR
-## 4  ET.OR
-## 5  ET.OR
-## 6  ET.OR
-</code></pre></div></div>
-
-<p>Now we can use this to calculate admin unit specific statistics. We
-might be interested in the number of sites per admin unit. To get that,
-we could just create a frequency table</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">table</span><span class="p">(</span><span class="n">ETH_Adm_1_per_point</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
-## Benshangul-Gumaz  Gambela Peoples           Oromia 
-##                1                1              201
-</code></pre></div></div>
-
-<p>Or we can use the <code class="language-plaintext highlighter-rouge">tapply</code> function for more complex calculations.
-<code class="language-plaintext highlighter-rouge">tapply</code> allows us to apply a function across groups. Let’s look at the
-number examined per admin unit</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Nex_per_Adm1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tapply</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">examined</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1_per_point</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">)</span><span class="w">
-</span><span class="n">Nex_per_Adm1</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Benshangul-Gumaz  Gambela Peoples           Oromia 
-##              109              108            24350
-</code></pre></div></div>
-
-<p>Now let’s get the number of positives by admin unit</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Npos_per_Adm1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tapply</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">pf_pos</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1_per_point</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">)</span><span class="w">
-</span><span class="n">Npos_per_Adm1</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Benshangul-Gumaz  Gambela Peoples           Oromia 
-##                1                0               78
-</code></pre></div></div>
-
-<p>From these numbers, we can calculate the prevalence per province</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">prev_per_Adm1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">Npos_per_Adm1</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">Nex_per_Adm1</span><span class="w">
-</span><span class="n">prev_per_Adm1</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Benshangul-Gumaz  Gambela Peoples           Oromia 
-##      0.009174312      0.000000000      0.003203285
-</code></pre></div></div>
-
-<p>If you want to merge these provincial prevalence estimates back into the
-province object <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> it is best practice to create a new table of
-prevalence by provice with unique ID for each province. That unique ID
-can be used to relate and merge the data with <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code>.</p>
-
-<p>First convert your prev_per_Adm1 vector into a dataframe with an ID
-column</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">prev_per_Adm1_df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data.frame</span><span class="p">(</span><span class="n">NAME_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">prev_per_Adm1</span><span class="p">),</span><span class="w">
-                               </span><span class="n">prevalence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">prev_per_Adm1</span><span class="p">,</span><span class="w">
-                               </span><span class="n">row.names</span><span class="o">=</span><span class="kc">NULL</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Now merge this with the <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> data frame</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">merge</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">prev_per_Adm1_df</span><span class="p">,</span><span class="w">
-                  </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"NAME_1"</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>You can now see that the additional <code class="language-plaintext highlighter-rouge">prevalence</code> field has been added</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##             NAME_1 GID_0   NAME_0   GID_1
-## 1      Addis Abeba   ETH Ethiopia ETH.1_1
-## 2             Afar   ETH Ethiopia ETH.2_1
-## 3           Amhara   ETH Ethiopia ETH.3_1
-## 4 Benshangul-Gumaz   ETH Ethiopia ETH.4_1
-## 5        Dire Dawa   ETH Ethiopia ETH.5_1
-## 6  Gambela Peoples   ETH Ethiopia ETH.6_1
-##                                       VARNAME_1 NL_NAME_1    TYPE_1 ENGTYPE_1
-## 1 Āddīs Ābaba|Addis Ababa|Adis-Abeba|Ādīs Ābeba      &lt;NA&gt; Astedader      City
-## 2                                                    &lt;NA&gt;     Kilil     State
-## 3                                         Amara      &lt;NA&gt;     Kilil     State
-## 4                              Beneshangul Gumu      &lt;NA&gt;     Kilil     State
-## 5                                                    &lt;NA&gt; Astedader      City
-## 6                                       Gambela      &lt;NA&gt;     Kilil     State
-##   CC_1 HASC_1  prevalence
-## 1   14  ET.AA          NA
-## 2   02  ET.AF          NA
-## 3   03  ET.AM          NA
-## 4   06  ET.BE 0.009174312
-## 5   15  ET.DD          NA
-## 6   12  ET.GA 0.000000000
-</code></pre></div></div>
-
-<p>We can now plot province colored by prevalence. Let’s use the leaflet
-package</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># First define a color palette based on prevalence</span><span class="w">
-</span><span class="n">colorPal</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">wes_palette</span><span class="p">(</span><span class="s2">"Zissou1"</span><span class="p">)[</span><span class="m">1</span><span class="o">:</span><span class="m">5</span><span class="p">],</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">prevalence</span><span class="p">)</span><span class="w">
-
-</span><span class="c1"># Plot with leaflet</span><span class="w">
-</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> 
-                                         </span><span class="n">col</span><span class="o">=</span><span class="n">colorPal</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">prevalence</span><span class="p">),</span><span class="w">
-                                         </span><span class="n">fillOpacity</span><span class="o">=</span><span class="m">0.6</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
-                                         </span><span class="n">addLegend</span><span class="p">(</span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">colorPal</span><span class="p">,</span><span class="w"> 
-                                         </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">prevalence</span><span class="p">,</span><span class="w">
-                                         </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Prevalence"</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-17-1.png" alt="" /></p>
-
-<h3 id="notes-on-table-joins">Notes on table joins</h3>
-
-<p>In this example, we joined the table of prevalence values for each State
-using the common <code class="language-plaintext highlighter-rouge">NAME_1</code> field Often, however, when you are joining a
-table of data to some spatial data, they are from different sources and
-the common field on which to match rows can be formatted differently.
-For example if you were merging a table of state level data for the USA
-using the state name, your table might have an entry for <code class="language-plaintext highlighter-rouge">California</code>
-which would not match with your spatial data if it has <code class="language-plaintext highlighter-rouge">california</code> as
-the corresponding entry. It is always preferable to use ID codes over
-names for matching as these are often less variable. If you do have to
-use a character string such as name, the following functions are useful
-ways to reformat characters to make sure they match:</p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">substr</code> - this allows you to extract substrings, for example
-<code class="language-plaintext highlighter-rouge">substr("Cali", 1,2)</code> extracts the first to second characters and
-would give you back <code class="language-plaintext highlighter-rouge">Ca</code></li>
-  <li><code class="language-plaintext highlighter-rouge">tolower</code> - converts all characters to lower case. <code class="language-plaintext highlighter-rouge">toupper</code> is the
-reverse.</li>
-  <li><code class="language-plaintext highlighter-rouge">gsub</code> - allows you to replace characters. For example
-<code class="language-plaintext highlighter-rouge">gsub(" ", "-", "CA USA")</code> would replace any whitespace with <code class="language-plaintext highlighter-rouge">-</code>,
-i.e. in this example it would return <code class="language-plaintext highlighter-rouge">CA-USA</code>.</li>
-</ul>
-
-<p><a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/table_joins.R">Go
-here</a>
-for a worked example of table joins in R.</p>
-
-<h3 id="pop-quiz">Pop quiz</h3>
-
-<ul>
-  <li>Try generating the same plot using a different color palette.</li>
-  <li>How would you plot only the provinces for which you have prevalence
-estimates?</li>
-</ul>
-
-<h1 id="manipulating-raster-data">Manipulating raster data</h1>
-
-<p>You’ve now seen how to subset polygons and relate point and polygon
-data. Now we are going to look at basic manipulations of raster data. We
-are going to load 2 raster file, elevation and land use for Ethiopia.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Get elevation using the getData function from the raster package</span><span class="w">
-</span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"alt"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-18-1.png" alt="" /></p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Land use (# For information on land use classifications see http://due.esrin.esa.int/files/GLOBCOVER2009_Validation_Report_2.2.pdf)</span><span class="w">
-</span><span class="n">ETH_land_use</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="p">(</span><span class="s2">"https://github.com/phw272c/phw272c.github.io/raw/master/data/ETH_land_use.tif"</span><span class="p">)</span><span class="w">
-</span><span class="n">ETH_land_use</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
-## dimensions : 4121, 5384, 22187464  (nrow, ncol, ncell)
-## resolution : 0.002777778, 0.002777778  (x, y)
-## extent     : 33.00139, 47.95694, 3.398611, 14.84583  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : ETH_land_use.tif 
-## names      : ETH_land_use 
-## values     : 11, 210  (min, max)
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#Plot the land use raster</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-18-2.png" alt="" /></p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For a break down of the classes in Ethiopia aka how often each land use type occurs</span><span class="w">
-</span><span class="c1">#(Note: this is just the number of pixels per land use type - NOT acres)</span><span class="w">
-</span><span class="n">table</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">[])</span><span class="w"> 
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
-##      11      14      20      30      40      60      90     110     120     130 
-##  105074  336324 2451623 2223305  129786  813227       8 5254463  580793 1900890 
-##     140     150     160     170     180     190     200     210 
-## 1403832 1998099    6765      18   26026    6375 2947145 2003711
-</code></pre></div></div>
-
-<h2 id="resampling-rasters">Resampling rasters</h2>
-
-<p>Its good practice to resample rasters to the same extent and resolution
-(i.e. same grid). This makes it easier to deal with later and to relate
-rasters to each other. The <code class="language-plaintext highlighter-rouge">resample</code> command in the <code class="language-plaintext highlighter-rouge">raster</code> package
-makes this process easy. Here we are going to resample our land use
-raster, but for a deeper dive on resampling rasters of different data
-types, <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/raster_resampling.R">go
-here</a>.
-The default method is bilinear interpolation, which doesn’t make sense
-for our categorical variable, so we should use the nearest neighbour
-function ‘ngb’</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Takes a little time to run..</span><span class="w">
-</span><span class="n">ETH_land_use_resampled</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">resample</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="o">=</span><span class="s2">"ngb"</span><span class="p">)</span><span class="w"> 
-
-</span><span class="c1"># Get summaries of both raster objects to check resolution and extent</span><span class="w">
-</span><span class="c1"># and to see whether resampled values look right</span><span class="w">
-</span><span class="n">ETH_land_use_resampled</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
-## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
-## resolution : 0.008333333, 0.008333333  (x, y)
-## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : memory
-## names      : ETH_land_use 
-## values     : 11, 210  (min, max)
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
-## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
-## resolution : 0.008333333, 0.008333333  (x, y)
-## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : ETH_msk_alt.grd 
-## names      : ETH_msk_alt 
-## values     : -189, 4420  (min, max)
-</code></pre></div></div>
-
-<h2 id="manipulating-rasters">Manipulating rasters</h2>
-
-<p>It is often the case that we want to change the resolution of a raster
-for analysis. For example, for computational reasons we might want to
-work at a coarser resolution. First, let’s check the resolution</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">res</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">)</span><span class="w"> </span><span class="c1"># in decimal degrees. 1 dd roughly 111km at the equator</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.008333333 0.008333333
-</code></pre></div></div>
-
-<p>Let’s aggregate (make lower resolution) by a factor of 10</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev_low_res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">aggregate</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">fact</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w"> </span><span class="c1"># by default, calculates mean</span><span class="w">
-</span><span class="n">res</span><span class="p">(</span><span class="n">ETH_elev_low_res</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.08333333 0.08333333
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev_low_res</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-21-1.png" alt="" /></p>
-
-<p>You can change the values of the pixels easily. For example, if you want
-to change the <code class="language-plaintext highlighter-rouge">ETH_elev</code> raster from its native meters to feet, you can
-mulitply by 3.28</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev_feet</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_elev</span><span class="o">*</span><span class="m">3.28</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev_feet</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-22-1.png" alt="" /></p>
-
-<p>Similarly, you can categorize raster values</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_elev_categorized</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">cut</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">)</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_elev_categorized</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-23-1.png" alt="" /></p>
-
-<p>If a raster is the same resolution and extent, you can perform joint
-operations on them, for example subtract values of one from another</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">new_raster</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ETH_land_use_resampled</span><span class="w"> </span><span class="c1"># Meaningless! Just for illustrative purposes..</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">new_raster</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-24-1.png" alt="" /></p>
-
-<h1 id="extracting-data-from-rasters">Extracting data from rasters</h1>
-
-<p>Now let’s extract values of elevation at each survey point. You can use
-the <code class="language-plaintext highlighter-rouge">extract</code> function from the raster package and insert the extracted
-values as a new field on <code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code></p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">extract</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
-</span><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="c1"># now has 3 variables</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPointsDataFrame 
-## features    : 203 
-## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
-## crs         : +proj=longlat +datum=WGS84 +no_defs 
-## variables   : 4
-## names       : examined, pf_pos,       pf_pr, elev 
-## min values  :       37,      0,           0,  817 
-## max values  :      221,     14, 0.127272727, 2451
-</code></pre></div></div>
-
-<p>You can also extract values using polygons e.g to get admin 1 level
-elevations. You just have to define a function to apply, otherwise you
-get all the pixel values per polygon. For very large rasters, check out
-the <code class="language-plaintext highlighter-rouge">velox</code> package.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">extract</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">fun</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span><span class="w"> </span><span class="c1"># takes a little longer..</span><span class="w">
-</span></code></pre></div></div>
-
-<h1 id="exploratory-spatial-analysis">Exploratory spatial analysis</h1>
-
-<p>We can now have a quick look at the relationship between prevalence and
-elevation. First generate a prevalence variable</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">prevalence</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">pf_pos</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">examined</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Now you can plot the relationship between prevalence and elevation</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ggplot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">data</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">elev</span><span class="p">,</span><span class="w"> </span><span class="n">prevalence</span><span class="p">))</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-28-1.png" alt="" /></p>
-
-<p>You might also be interested in distances to/from other features
-(e.g. health facilities, water). Here we are going to load up a
-waterbody layer (obtained via <a href="http://www.diva-gis.org/Data">http://www.diva-gis.org/Data</a>) and
-calculate distance from each point. In this case, the file is in GeoJSON
-format instead of Shapefile. <code class="language-plaintext highlighter-rouge">readOGR</code> is able to handle GeoJSON easily.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson"</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## OGR data source with driver: GeoJSON 
-## Source: "https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/ETH_waterbodies.geojson", layer: "ETH_waterbodies"
-## with 380 features
-## It has 5 fields
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPolygonsDataFrame 
-## features    : 380 
-## extent      : 33.00001, 46.80059, 4.232061, 14.55  (xmin, xmax, ymin, ymax)
-## crs         : +proj=longlat +datum=WGS84 +no_defs 
-## variables   : 5
-## names       : ISO,  COUNTRY,                 F_CODE_DES,                             HYC_DESCRI,                  NAME 
-## min values  : ETH, Ethiopia,               Inland Water, Non-Perennial/Intermittent/Fluctuating, ABAY WENZ (BLUE NILE) 
-## max values  : ETH, Ethiopia, Land Subject to Inundation,                    Perennial/Permanent,           ZIWAY HAYK'
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">waterbodies</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-2/unnamed-chunk-29-1.png" alt="" /></p>
-
-<p>The goesphere package has some nice functions such as <code class="language-plaintext highlighter-rouge">dist2Line</code> which
-calculates distance in meters from spatial data recorded using decimal
-degrees. Warning: takes a little while to compute</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dist_to_water</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dist2Line</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">waterbodies</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>This produces a matrix, where each row represents each point in
-<code class="language-plaintext highlighter-rouge">ETH_malaria_data_SPDF</code> and the first column is the distance in meters
-to the nearest waterbody</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">dist_to_water</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##       distance      lon      lat  ID
-## [1,] 116153.32 38.03253 6.426888 363
-## [2,] 163802.37 38.56778 7.082849 358
-## [3,] 137683.25 40.65231 8.808335 238
-## [4,] 173427.48 37.62588 5.794201 367
-## [5,]  40482.23 37.00735 4.811708 365
-## [6,] 163677.02 38.56340 7.075962 358
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Can add to your data frame by extracting the first column</span><span class="w">
-</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">dist_to_water</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dist_to_water</span><span class="p">[,</span><span class="m">1</span><span class="p">]</span><span class="w">
-</span></code></pre></div></div>
-
-<p>If the objects you are interested in calucating distance to are points
-as opposed to polygons/lines (as above) you first have to calculate the
-distance to every point and then identify the minimum. For example,
-imagine waterbodies data was only available as a point dataset (we can
-fake this by calculating the centroid of each polygon)</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">waterbodies_points</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">gCentroid</span><span class="p">(</span><span class="n">waterbodies</span><span class="p">,</span><span class="w"> </span><span class="n">byid</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Now calucate a distance matrix showing distances between each
-observation and each waterbody point. the <code class="language-plaintext highlighter-rouge">distm</code> function creates a
-distance matrix between every pair of data points and waterbody points
-in meters.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dist_matrix</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">distm</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">waterbodies_points</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Then use the apply function to apply the ‘minimum’ function to each row
-(as each row represents the distance of every waterbody point from our
-first observation)</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">dist_to_water_point</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">apply</span><span class="p">(</span><span class="n">dist_matrix</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">min</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>The alternative, much faster, but potentially less accurate method to
-‘distm’, is to use the nn2 function from the RANN package. This allows
-you to calculate the nearest point from each observation and then you
-can use the ‘distGeo’ function from the ‘geosphere’ package to calculate
-the distance in meters. The reason this could be inaccurate, is that the
-nearest point in decimal degrees might not be the nearest in meters as
-degrees are not a good measure of distance. In most cases, you are
-probably OK.</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">RANN</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">geosphere</span><span class="p">)</span><span class="w">
-
-</span><span class="c1"># Get the index of the waterbody points that are nearest to each observation</span><span class="w">
-</span><span class="n">nn</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nn2</span><span class="p">(</span><span class="n">waterbodies_points</span><span class="o">@</span><span class="n">coords</span><span class="p">,</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">coords</span><span class="p">,</span><span class="w"> 
-          </span><span class="n">k</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w">
-          
-</span><span class="c1"># Calculate the distance in meters between each observation and its nearest waterbody point   </span><span class="w">
-</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">dist_to_water_point</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">distGeo</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">coords</span><span class="p">,</span><span class="w">
-        </span><span class="n">waterbodies_points</span><span class="o">@</span><span class="n">coords</span><span class="p">[</span><span class="n">nn</span><span class="o">$</span><span class="n">nn.idx</span><span class="p">,])</span><span class="w">
-</span></code></pre></div></div>
-
-<h2 id="useful-resources">Useful resources</h2>
-
-<ul>
-  <li>
-    <p>The <a href="https://rspatial.org/raster/pkg/1-introduction.html">raster package
-vignette</a> is
-extremely useful</p>
-  </li>
-  <li>
-    <p>If you are bumping into speed issues extracting/summarizing raster
-data, have a look at the <a href="https://isciences.gitlab.io/exactextractr/">exactextractr
-package</a></p>
-  </li>
-</ul>
-
-<h2 id="key-readings">Key readings</h2>
-
-<p>This week is all about practice. Instead of working through journal
-articles, have a play with your data and get to know how the functions
-work.</p>
-
-<h2 id="pop-quiz-answers">Pop quiz answers</h2>
-
-<p>Can <a href="https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/code/cheat_sheet_week2.R">be found
-here</a></p>]]></content><author><name></name></author><summary type="html"><![CDATA[In week 1, you got to load up some spatial data and make some pretty maps. This week, we will be stepping up a gear and learning how to crop and subset spatial data. We will also be go through the process of resampling rasters.]]></summary></entry><entry><title type="html">Week 3 - Spatial variation in risk</title><link href="http://localhost:4000/week-3/" rel="alternate" type="text/html" title="Week 3 - Spatial variation in risk" /><published>2022-02-25T00:00:00-08:00</published><updated>2022-02-25T00:00:00-08:00</updated><id>http://localhost:4000/week-3</id><content type="html" xml:base="http://localhost:4000/week-3/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
+Aug;25(8):1205-12.</a></p>]]></content><author><name></name></author><summary type="html"><![CDATA[]]></summary></entry><entry><title type="html">Week 3 - Spatial variation in risk</title><link href="http://localhost:4000/week-3/" rel="alternate" type="text/html" title="Week 3 - Spatial variation in risk" /><published>2022-02-25T00:00:00-08:00</published><updated>2022-02-25T00:00:00-08:00</updated><id>http://localhost:4000/week-3</id><content type="html" xml:base="http://localhost:4000/week-3/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
 across space from point data. These may be point level data
 (i.e. measurements of something of interest at particular points) or
 point process data (i.e. occurrences of events in a given area). When
@@ -4289,432 +4768,4 @@ Remote Sensing. 2017 Jul;9(7):713.</p>
 <p>Yang GJ, Vounatsou P, Xiao-Nong Z, Utzinger J, Tanner M. A review of
 geographic information system and remote sensing with applications to
 the epidemiology and control of schistosomiasis in China. Acta tropica.
-2005 Nov 1;96(2-3):117-29.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Introduction]]></summary></entry><entry><title type="html">Week 1 - Visualizing spatial data</title><link href="http://localhost:4000/week-1/" rel="alternate" type="text/html" title="Week 1 - Visualizing spatial data" /><published>2022-02-24T00:00:00-08:00</published><updated>2022-02-24T00:00:00-08:00</updated><id>http://localhost:4000/week-1</id><content type="html" xml:base="http://localhost:4000/week-1/"><![CDATA[<p>Welcome to week 1 of spatial analysis for public health. This week we
-will be learning about the process of moving from visualizing spatial
-data through to exploration and analysis. We will get our hands dirty
-with some R code and learn how to make beautiful maps. This week’s
-lecture will focus on some of the concepts behind spatial epidemiology.
-The code below covers loading and visualizing spatial data in R. You
-will then have a chance to apply that code to new data and questions in
-this week’s assignment.</p>
-
-<h2 id="lab-1-working-with-spatial-data-in-r">Lab 1: Working with Spatial Data in R</h2>
-
-<p>The simplest data is a table with coordinates (i.e. point data). For
-this assignment, we’ll work with malaria prevalence point data from
-Ethiopia. These data were downloaded from the Malaria Atlas Project data
-repository and were originally collected as part of <a href="https://link.springer.com/article/10.1186/1475-2875-10-25">a
-study</a>
-conducted in 2009.</p>
-
-<p>First get the necessary libraries for this week</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
-</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Please note that rgdal will be retired by the end of 2023,
-## plan transition to sf/stars/terra functions using GDAL and PROJ
-## at your earliest convenience.
-## 
-## rgdal: version: 1.5-28, (SVN revision 1158)
-## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 3.2.1, released 2020/12/29
-## Path to GDAL shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/gdal
-## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 7.2.1, January 1st, 2021, [PJ_VERSION: 721]
-## Path to PROJ shared files: /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
-## PROJ CDN enabled: FALSE
-## Linking to sp version:1.4-6
-## To mute warnings of possible GDAL/OSR exportToProj4() degradation,
-## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.
-## Overwritten PROJ_LIB was /Users/David/Library/R/x86_64/4.1/library/rgdal/proj
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Import the data</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p>The columns should be self-explanatory, but briefly: * examined =
-numbers tested * pf_pos = of those tested, how many were positive for
-Plasmodium falciparum malaria * pf_pr = Plasmodium falciparum parasite
-rate which is the same as infection prevalence or proportion infected
-(i.e. pf_pos / examined) * longitude = longitude of school in decimal
-degrees * latitude = latitude of schoolin decimal degrees</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Look at the first few rows</span><span class="w">
-</span><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##    country country_id continent_id site_id          site_name latitude
-## 1 Ethiopia        ETH       Africa    6694        Dole School   5.9014
-## 2 Ethiopia        ETH       Africa    8017     Gongoma School   6.3175
-## 3 Ethiopia        ETH       Africa   12873      Buriya School   7.5674
-## 4 Ethiopia        ETH       Africa    6533       Arero School   4.7192
-## 5 Ethiopia        ETH       Africa    4150     Gandile School   4.8930
-## 6 Ethiopia        ETH       Africa    1369 Melka Amana School   6.2461
-##   longitude rural_urban year_start lower_age upper_age examined pf_pos
-## 1   38.9412     UNKNOWN       2009         4        15      220      0
-## 2   39.8362     UNKNOWN       2009         4        15      216      0
-## 3   40.7521     UNKNOWN       2009         4        15      127      0
-## 4   38.7650     UNKNOWN       2009         4        15       56      0
-## 5   37.3632     UNKNOWN       2009         4        15      219      0
-## 6   39.7891     UNKNOWN       2009         4        15      215      1
-##         pf_pr     method
-## 1 0.000000000 Microscopy
-## 2 0.000000000 Microscopy
-## 3 0.000000000 Microscopy
-## 4 0.000000000 Microscopy
-## 5 0.000000000 Microscopy
-## 6 0.004651163 Microscopy
-##                                                                                                                                title1
-## 1 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
-## 2 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
-## 3 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
-## 4 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
-## 5 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
-## 6 School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.
-##                                                                                                                                                                                                                                                                                               citation1
-## 1 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
-## 2 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
-## 3 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
-## 4 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
-## 5 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
-## 6 Ashton, RA, Kefyalew, T, Tesfaye, G, Pullan, RL, Yadeta, D, Reithinger, R, Kolaczinski, JH and Brooker, S (2011).  &lt;b&gt;School-based surveys of malaria in Oromia Regional State, Ethiopia: a rapid survey method for malaria in low transmission settings.&lt;/b&gt; &lt;i&gt;Malaria Journal&lt;/i&gt;, &lt;b&gt;10&lt;/b&gt;(1):25
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create a histogram of the prevalence</span><span class="w">
-</span><span class="n">hist</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="p">,</span><span class="w"> </span><span class="n">breaks</span><span class="o">=</span><span class="m">20</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-3-1.png" alt="" /></p>
-
-<h1 id="plotting-and-mapping-spatial-data">Plotting and mapping spatial data</h1>
-
-<p>It is possible to use R’s base graphics to plot points, treating them
-like any other data with x and y coordinates. For example, to get a plot
-of the points alone</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
-     </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">)</span><span class="w"> </span><span class="c1">#boring!</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-4-1.png" alt="" /></p>
-
-<p>You might want to vary the size of the circle as a function of a
-variable. For example, if we wanted to plot points with size relative to
-prevalence we can use the expansion argument <code class="language-plaintext highlighter-rouge">cex</code></p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Use the cex function to plot circle size as a function of a variable. In this case prevalence. As the values are very small we can multiply by an arbitrary amount for visualization purposes</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
-     </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w">
-     </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-5-1.png" alt="" /></p>
-
-<h2 id="working-with-spatial-objects">Working with ‘Spatial’ objects</h2>
-
-<p>In R, it is sometimes useful to package spatial data up into a ‘Spatial’
-class of object using the <code class="language-plaintext highlighter-rouge">sp</code> package. This often makes it easier to
-work with and is often a requirement for other functions. The
-<a href="https://cran.r-project.org/web/packages/sp/index.html">sp</a> package
-allows you to put your data into specific spatial objects, such as
-<code class="language-plaintext highlighter-rouge">SpatialPoints</code> or <code class="language-plaintext highlighter-rouge">SpatialPolygons</code>. In addition, if your data are more
-than just the geometry, i.e. if you have data associated with each
-spatial feature, you can create spatial DataFrames,
-i.e. <code class="language-plaintext highlighter-rouge">SpatialPointsDataFrames</code> and <code class="language-plaintext highlighter-rouge">SpatialPolygonsDataFrames</code>. For
-example, if we wanted to create a SpatalPointsDataFrame using the
-Ethiopia data:</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_malaria_data_SPDF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">SpatialPointsDataFrame</span><span class="p">(</span><span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">)],</span><span class="w">
-                                      </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="s2">"examined"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pos"</span><span class="p">,</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)],</span><span class="w">
-                                      </span><span class="n">proj4string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CRS</span><span class="p">(</span><span class="s2">"+init=epsg:4326"</span><span class="p">))</span><span class="w"> </span><span class="c1"># sets the projection to WGS 1984 using lat/long. Optional but good to specify</span><span class="w">
-
-</span><span class="c1"># Summary of object</span><span class="w">
-</span><span class="n">ETH_malaria_data_SPDF</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class       : SpatialPointsDataFrame 
-## features    : 203 
-## extent      : 34.5418, 42.4915, 3.8966, 9.9551  (xmin, xmax, ymin, ymax)
-## crs         : +proj=longlat +datum=WGS84 +no_defs 
-## variables   : 3
-## names       : examined, pf_pos,       pf_pr 
-## min values  :       37,      0,           0 
-## max values  :      221,     14, 0.127272727
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># SPDFs partition data elements, e.g. the coordinates are stored separately from the data</span><span class="w">
-</span><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">coords</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##      longitude latitude
-## [1,]   38.9412   5.9014
-## [2,]   39.8362   6.3175
-## [3,]   40.7521   7.5674
-## [4,]   38.7650   4.7192
-## [5,]   37.3632   4.8930
-## [6,]   39.7891   6.2461
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">@</span><span class="n">data</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   examined pf_pos       pf_pr
-## 1      220      0 0.000000000
-## 2      216      0 0.000000000
-## 3      127      0 0.000000000
-## 4       56      0 0.000000000
-## 5      219      0 0.000000000
-## 6      215      1 0.004651163
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># You can quickly access the data frame as per a standard data frame, e.g.</span><span class="w">
-</span><span class="n">head</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="o">$</span><span class="n">pf_pr</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] 0.000000000 0.000000000 0.000000000 0.000000000 0.000000000 0.004651163
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># You can use the plot or spplot function to get quick plots</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-6-1.png" alt="" /></p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">spplot</span><span class="p">(</span><span class="n">ETH_malaria_data_SPDF</span><span class="p">,</span><span class="w"> </span><span class="n">zcol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"pf_pr"</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-6-2.png" alt="" /></p>
-
-<p>Let’s have a look at SpatialPolygonsDataFrames. To load a polygon
-shapefile (or other file types), you can use the <code class="language-plaintext highlighter-rouge">readOGR</code> function from
-the <code class="language-plaintext highlighter-rouge">rgdal</code> package. For example, if you wanted to load in the province
-boundaries for Ethiopia shapefile <code class="language-plaintext highlighter-rouge">ETH_Adm_1</code> from the
-<code class="language-plaintext highlighter-rouge">ETH_Adm_1_shapefile</code> folder on
-<a href="https://github.com/phw272c/phw272c.github.io/tree/master/data/ETH_Adm_1_shapefile">GitHub</a>,
-assuming you have downloaded the folder of files you would use the
-following command</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ETH_Adm_1 &lt;- readOGR("ETH_Adm_1_shapefile", "ETH_Adm_1")
-</code></pre></div></div>
-
-<p>As it happens, admin boundary data is accessible using the <code class="language-plaintext highlighter-rouge">getData</code>
-function from the <code class="language-plaintext highlighter-rouge">raster</code> package. Be careful as some other packages
-also have a <code class="language-plaintext highlighter-rouge">getData</code> function, so to specify that you want to use the
-<code class="language-plaintext highlighter-rouge">getData</code> function from the <code class="language-plaintext highlighter-rouge">raster</code> package you can use the following
-code</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># You first need the ISO3 codes for the country of interest. You can access these using `ccodes()`. For Ethiopia, the ISO3 is ETH</span><span class="w">
-
-</span><span class="c1"># The getData function then allows you to retrieve the relevant admin level boundaries from GADM.</span><span class="w">
-</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w"> 
-</span></code></pre></div></div>
-
-<p>Now we can plot the point data in context</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot both country and data points</span><span class="w">
-</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
-</span><span class="n">points</span><span class="p">(</span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">latitude</span><span class="p">,</span><span class="w">
-     </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_malaria_data</span><span class="o">$</span><span class="n">pf_pr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w">
-     </span><span class="n">ylab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">,</span><span class="w"> </span><span class="n">xlab</span><span class="o">=</span><span class="s2">"Longitude"</span><span class="p">,</span><span class="w">
-     </span><span class="n">col</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-8-1.png" alt="" /></p>
-
-<h1 id="plotting-data-using-web-maps">Plotting data using web maps</h1>
-
-<p>Rather than just relying on R base graphics, we can easily create
-webmaps using the <code class="language-plaintext highlighter-rouge">leaflet</code> package. There are many basemaps available.
-See <a href="https://leaflet-extras.github.io/leaflet-providers/preview/">here</a>.
-For any map, identify the Provider name, e.g. ”OpenStreetMap.Mapnik”, by
-clicking on the map.</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Define your basemap
-basemap &lt;- leaflet() %&gt;% addTiles()
-basemap
-
-# Or choose another basemap
-basemap &lt;- leaflet() %&gt;% addProviderTiles("Esri.WorldImagery")
-basemap
-
-#Let's choose a simple one
-basemap &lt;- leaflet() %&gt;% addProviderTiles("CartoDB.Positron")
-</code></pre></div></div>
-
-<p>You can use the ‘piping’ command %&gt;% to add layers. As our point and
-polygon data are already ‘Spatial’ object this is easy</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addPolygons(data=ETH_Adm_1)
-
-
-# to change the colors/line weight
-basemap %&gt;% addPolygons(data=ETH_Adm_1, color = "red", 
-                        weight = 1, fillOpacity = 0.2)
-
-#You can also add popups
-basemap %&gt;% addPolygons(data=ETH_Adm_1, 
-                        popup = ETH_Adm_1$NAME_1)
-
-# If you want to add points as well
-basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2,
-                        popup = ETH_Adm_1$NAME_1) %&gt;%
-  
-            addCircleMarkers(data=ETH_malaria_data_SPDF,
-                             color="red", radius = 2)
-</code></pre></div></div>
-
-<p>The leaflet package also has some nice functions for generate color
-palettes that map to a variable you want to display. For example, if we
-wanted to create a color ramp relative to prevalence we could use the
-<code class="language-plaintext highlighter-rouge">colorQuantile</code> function. See ?colorQuantile for other ways to build
-color palettes such as <code class="language-plaintext highlighter-rouge">colorNumeric</code></p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>library(wesanderson) # for a nice color palette
-colorPal &lt;- colorNumeric(wes_palette("Zissou1")[1:5], ETH_malaria_data_SPDF$pf_pr, n = 5)
-
-# colorPal is now a function you can apply to get the corresponding
-# color for a value
-colorPal(0.1)
-
-basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
-                        popup = ETH_Adm_1$NAME_1,
-                        color = "gray") %&gt;%
-  
-  addCircleMarkers(data=ETH_malaria_data_SPDF,
-                   color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
-                   radius = 2,
-                   popup = as.character(ETH_malaria_data_SPDF$pf_pr))
-</code></pre></div></div>
-
-<p>You might want to add a legend. This just goes on as another layer on
-the map. First define the labels. In this case, we are using quintiles.</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
-                        popup = ETH_Adm_1$NAME_1,
-                        color = "gray") %&gt;%
-  
-  addCircleMarkers(data=ETH_malaria_data_SPDF,
-                   color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
-                   radius = 2,
-                   popup = as.character(ETH_malaria_data_SPDF$pf_pr)) %&gt;%
-  
-  addLegend(pal = colorPal, 
-            title = "Prevalence",
-            values = ETH_malaria_data_SPDF$pf_pr )
-</code></pre></div></div>
-
-<p>For more complex popups, you can define the HTML</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addPolygons(data=ETH_Adm_1, weight = 2, fillOpacity=0,
-                        popup = ETH_Adm_1$NAME_1,
-                        color = "gray") %&gt;%
-  
-  addCircleMarkers(data=ETH_malaria_data_SPDF,
-                   color = colorPal(ETH_malaria_data_SPDF$pf_pr), 
-                   radius = 2,
-                   popup = paste("&lt;p&gt;","Prevalence:",
-                                 round(ETH_malaria_data_SPDF$pf_pr,2),
-                                 "&lt;p&gt;")) %&gt;%
-                                 
- addLegend(pal = colorPal, 
-            title = "Prevalence",
-            values = ETH_malaria_data_SPDF$pf_pr )
-</code></pre></div></div>
-
-<h1 id="plotting-raster-data">Plotting raster data</h1>
-
-<p>If you have a local raster file (e.g. a .tif file), you can use the
-<code class="language-plaintext highlighter-rouge">raster</code> command to load the file into R. For example, if you download
-the
-<a href="https://github.com/phw272c/phw272c.github.io/blob/master/data/elev_ETH.tif?raw=true">“elev_ETH.tif”</a>
-file from this week’s data, you would use the following to load from a
-local source:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>elev &lt;- raster("elev_ETH.tif")
-</code></pre></div></div>
-
-<p>You can also load using a URL, e.g.</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>elev &lt;- raster("https://github.com/phw272c/phw272c.github.io/blob/master/data/elev_ETH.tif?raw=true")
-</code></pre></div></div>
-
-<p>The <code class="language-plaintext highlighter-rouge">getData</code> functon from the <code class="language-plaintext highlighter-rouge">raster</code> package allows you to get hold
-of some select raster data, such as elevation and bioclimatic layers. To
-get hold of elevation for Ethiopia, use the following</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"alt"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
-</span><span class="n">elev</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
-## dimensions : 1416, 1824, 2582784  (nrow, ncol, ncell)
-## resolution : 0.008333333, 0.008333333  (x, y)
-## extent     : 32.9, 48.1, 3.2, 15  (xmin, xmax, ymin, ymax)
-## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : ETH_msk_alt.grd 
-## names      : ETH_msk_alt 
-## values     : -189, 4420  (min, max)
-</code></pre></div></div>
-
-<p>You can plot using the plot function</p>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plot</span><span class="p">(</span><span class="n">elev</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<p><img src="../images/week-1/unnamed-chunk-10-1.png" alt="" /></p>
-
-<p>Alternatively, you can use leaflet</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>basemap %&gt;% addRasterImage(elev)
-</code></pre></div></div>
-
-<p>If you want to add a legend, you have to define the color palette first</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Define palette
-raster_colorPal &lt;- colorNumeric(topo.colors(64), values(elev), na.color = NA)
-
-# Plot
-basemap %&gt;% addRasterImage(elev, color = raster_colorPal) %&gt;%
-addLegend(values = values(elev), pal = raster_colorPal)
-</code></pre></div></div>
-
-<p>If you want to export the data, there are several options.</p>
-
-<ol>
-  <li>
-    <p>Export button in the Viewer pane. Using ‘Save as webpage’ creates an
-html file which you can open using a browser.</p>
-  </li>
-  <li>
-    <p>Save as kml for someone to open in Google Earth</p>
-  </li>
-</ol>
-
-<pre><code class="language-{=html}">&lt;!-- --&gt;
-</code></pre>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>library(plotKML)
-plotKML(ETH_malaria_data_SPDF) # see ?plotKML for more options
-</code></pre></div></div>
-
-<h1 id="pop-quiz">Pop quiz</h1>
-
-<p>When using the base graphics to plot point data, how might you make the
-points larger, but still relative to prevalence?</p>
-
-<h2 id="resources">Resources</h2>
-
-<p>The R packages
-<a href="https://cran.r-project.org/web/packages/sp/index.html">sp</a> and
-<a href="https://cran.r-project.org/web/packages/raster/index.html">raster</a> are
-both important packages for spatial analysis.</p>
-
-<p>R studio also have a fantastic
-<a href="https://rstudio.github.io/leaflet/">site</a> outlining the use of leaflet</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Welcome to week 1 of spatial analysis for public health. This week we will be learning about the process of moving from visualizing spatial data through to exploration and analysis. We will get our hands dirty with some R code and learn how to make beautiful maps. This week’s lecture will focus on some of the concepts behind spatial epidemiology. The code below covers loading and visualizing spatial data in R. You will then have a chance to apply that code to new data and questions in this week’s assignment.]]></summary></entry></feed>
+2005 Nov 1;96(2-3):117-29.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Introduction]]></summary></entry></feed>
