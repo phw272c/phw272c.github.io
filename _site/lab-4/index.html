@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Lab 4 - Accessing spatial datasets | Applied Spatial Data Science for Public Health</title>
+<meta name="generator" content="Jekyll v3.9.1" />
+<meta property="og:title" content="Lab 4 - Accessing spatial datasets" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Introduction" />
+<meta property="og:description" content="Introduction" />
+<link rel="canonical" href="http://localhost:4000/lab-4/" />
+<meta property="og:url" content="http://localhost:4000/lab-4/" />
+<meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-03-09T00:00:00-08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Lab 4 - Accessing spatial datasets" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-03-09T00:00:00-08:00","datePublished":"2023-03-09T00:00:00-08:00","description":"Introduction","headline":"Lab 4 - Accessing spatial datasets","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/lab-4/"},"url":"http://localhost:4000/lab-4/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
+<body>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Lab 4 - Accessing spatial datasets</h1>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h2 id="introduction">Introduction</h2>
+
+<p>In the last lab, we did cluster analysis to reveal noteworthy spatial
+patterns in the outcome data (health related events/measures) and ways
+to assess spatial autocorrelation. In lab 2 (Spatial variation in risk),
+we actually kind of already used spatial autocorrelation to interpolate
+the data and produce smooth maps of our outcomes.</p>
+
+<p>Starting next week and till the end of the class, we will talk about
+spatial regression modeling which combines regression modeling (first
+trend) and spatial autocorrelation modeling (second trend).</p>
+
+<p>Today, in this transition session, we will cover some of the spatial
+data you can use in the regression modeling step.</p>
+
+<h2 id="accessing-spatial-data">Accessing spatial data</h2>
+
+<p>Many spatial data have been made directly available within R thanks to
+packages but for some data, you might need to look online.</p>
+
+<h3 id="from-r-packages">From R packages</h3>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Load packages</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>You have already used spatial data from the “raster” package via the
+getData function. Let’s see what’s in there!</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Read vignette for details and references</span><span class="w">
+</span><span class="o">?</span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">()</span><span class="w">
+</span></code></pre></div></div>
+
+<p>So you can download administrative boundaries (option name = ‘GADM’),
+elevation (name = ‘alt’) and even climate variables (name =
+‘worldclim’).</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## Ethiopia</span><span class="w">
+</span><span class="c1"># Administrative boundaries (level 1)</span><span class="w">
+</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"GADM"</span><span class="p">,</span><span class="w">
+                             </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
+                             </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w">
+              </span><span class="n">popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w">
+              </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-4-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Elevation (meters)</span><span class="w">
+</span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"alt"</span><span class="p">,</span><span class="w">
+                            </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "alt", country = "ETH"): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster_colorPal_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w">
+                                     </span><span class="n">domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_elev</span><span class="p">),</span><span class="w">
+                                     </span><span class="n">na.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">)</span><span class="w"> </span><span class="c1"># Define palette</span><span class="w">
+</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_elev</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_elev</span><span class="p">)</span><span class="w"> </span><span class="c1">#%&gt;%</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-4-2.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">  </span><span class="c1"># addLegend(pal = raster_colorPal_elev, </span><span class="w">
+  </span><span class="c1">#           values = values(ETH_elev),</span><span class="w">
+  </span><span class="c1">#           title = "Elevation&lt;br&gt;(meters)") </span><span class="w">
+  </span><span class="c1"># I can't figure out why this ^ isn't working</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="make-sure-you-get-what-you-want">Make sure you get what you want</h3>
+
+<p>Need to correctly specify ‘country’ option:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s1">'ISO3'</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Varying ‘level’ option gives you different administrative boundaries and
+disabling ‘mask’ option reveals elevation data comes from a larger
+surface that goes beyond the country’s boundaries:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## Ethiopia and South Sudan</span><span class="w">
+</span><span class="c1"># Administrative boundaries (level 0)</span><span class="w">
+</span><span class="n">SSD_Adm_0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"GADM"</span><span class="p">,</span><span class="w">
+                             </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"SSD"</span><span class="p">,</span><span class="w">
+                             </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "GADM", country = "SSD", level = 0): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Elevation (meters)</span><span class="w">
+</span><span class="n">ETH_elev_unmasked</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"alt"</span><span class="p">,</span><span class="w">
+                                     </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
+                                     </span><span class="n">mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "alt", country = "ETH", mask = FALSE): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster_colorPal_elev_unmasked</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w">
+                                              </span><span class="n">domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_elev_unmasked</span><span class="p">),</span><span class="w">
+                                              </span><span class="n">na.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">)</span><span class="w"> </span><span class="c1"># Define palette</span><span class="w">
+</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="o">$</span><span class="n">NAME_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="o">$</span><span class="n">NAME_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">fillOpacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w">
+              </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"red"</span><span class="p">,</span><span class="w">
+              </span><span class="n">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_elev_unmasked</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_elev_unmasked</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLegend</span><span class="p">(</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Elevation&lt;br&gt;(meters)"</span><span class="p">,</span><span class="w">
+            </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_elev_unmasked</span><span class="p">),</span><span class="w">
+            </span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_elev_unmasked</span><span class="p">)</span><span class="w"> 
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-6-1.png" alt="" /></p>
+
+<p>As you vary the ‘name’ option to access environmental variable, pay
+particular attention to the geolocalisation options. For instance, at
+the 2.5 resolution (minutes of a degree), there is no need for location
+specification but at the 0.5 resolution, need to provide ‘lon’ and ‘lat’
+arguments…</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 2.5, 5 or 10 resolution (minutes of a degree)... no need for location specification?!?!</span><span class="w">
+</span><span class="n">ETH_prec_10</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"worldclim"</span><span class="p">,</span><span class="w">
+                            </span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w">
+                            </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "worldclim", var = "prec", res = 10): getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for</span><span class="w">
+</span><span class="n">ETH_prec_0.5</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"worldclim"</span><span class="p">,</span><span class="w">
+                            </span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w">
+                            </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w">
+                            </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">40</span><span class="p">,</span><span class="w">
+                            </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "worldclim", var = "prec", res = 0.5, : getData will be removed in a future version of raster
+## . Please use the geodata package instead
+</code></pre></div></div>
+
+<p><em>Pop quiz: why do you think that is?</em></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Explore objects</span><span class="w">
+</span><span class="n">ETH_prec_10</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterStack 
+## dimensions : 900, 2160, 1944000, 12  (nrow, ncol, ncell, nlayers)
+## resolution : 0.1666667, 0.1666667  (x, y)
+## extent     : -180, 180, -60, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## names      : prec1, prec2, prec3, prec4, prec5, prec6, prec7, prec8, prec9, prec10, prec11, prec12 
+## min values :     0,     0,     0,     0,     0,     0,     0,     0,     0,      0,      0,      0 
+## max values :   885,   736,   719,   820,   955,  1850,  2088,  1386,   904,    980,    893,    914
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_prec_0.5</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterStack 
+## dimensions : 3600, 3600, 12960000, 12  (nrow, ncol, ncell, nlayers)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 30, 60, -3.332445e-12, 30  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## names      : prec1_27, prec2_27, prec3_27, prec4_27, prec5_27, prec6_27, prec7_27, prec8_27, prec9_27, prec10_27, prec11_27, prec12_27 
+## min values :        0,        0,        0,        0,        0,        0,        0,        0,        0,         0,         0,         0 
+## max values :      126,      137,      240,      697,      289,      360,      458,      457,      340,       450,       584,       184
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Restrict to October and plot</span><span class="w">
+</span><span class="n">ETH_prec_10_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_prec_10</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
+</span><span class="n">ETH_prec_0.5_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_prec_0.5</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
+
+
+</span><span class="n">raster_colorPal_prec</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w">
+                                     </span><span class="n">domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_prec_10_Oct</span><span class="p">),</span><span class="w">
+                                     </span><span class="n">na.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">)</span><span class="w"> </span><span class="c1"># Define palette</span><span class="w">
+
+</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_prec_10_Oct</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">,</span><span class="w">
+                 </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"October precipitation (mm)"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLegend</span><span class="p">(</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"October precipitation (mm)&lt;br&gt;(10' res)"</span><span class="p">,</span><span class="w">
+            </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_prec_10_Oct</span><span class="p">),</span><span class="w">
+            </span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">)</span><span class="w">  </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLayersControl</span><span class="p">(</span><span class="n">overlayGroups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"October precipitation (mm)"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-8-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="o">$</span><span class="n">NAME_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="o">$</span><span class="n">NAME_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">fillOpacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w">
+              </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"red"</span><span class="p">,</span><span class="w">
+              </span><span class="n">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w">
+              </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"South Sudan"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w">
+              </span><span class="n">popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w">
+              </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_Adm_1</span><span class="o">$</span><span class="n">NAME_1</span><span class="p">,</span><span class="w">
+              </span><span class="n">fillOpacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w">
+              </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"black"</span><span class="p">,</span><span class="w">
+              </span><span class="n">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w">
+              </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Ethiopia"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_prec_0.5_Oct</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">,</span><span class="w">
+                 </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"October precipitation (mm)"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLegend</span><span class="p">(</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"October precipitation (mm)&lt;br&gt;(0.5' res)"</span><span class="p">,</span><span class="w">
+            </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_prec_0.5_Oct</span><span class="p">),</span><span class="w">
+            </span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLayersControl</span><span class="p">(</span><span class="n">overlayGroups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"October precipitation (mm)"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Ethiopia"</span><span class="p">,</span><span class="w"> </span><span class="s2">"South Sudan"</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">hideGroup</span><span class="p">(</span><span class="s2">"South Sudan"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-8-2.png" alt="" /></p>
+
+<p><em>Pop quiz: how would you get the 0.5 resolution October precipitation
+for South Sudan?</em></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... Left half of South Sudan</span><span class="w">
+</span><span class="n">SSD_prec_0.5_left</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"worldclim"</span><span class="p">,</span><span class="w">
+                                     </span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w">
+                                     </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w">
+                                     </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">,</span><span class="w">
+                                     </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Restrict to October</span><span class="w">
+</span><span class="n">SSD_prec_0.5_Oct_left</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">SSD_prec_0.5_left</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
+
+</span><span class="c1"># Merge left and right halves together</span><span class="w">
+</span><span class="n">SSD_prec_0.5_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">merge</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_prec_0.5_Oct_left</span><span class="p">,</span><span class="w">
+                                  </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_prec_0.5_Oct</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Crop to South Sudan extent </span><span class="w">
+</span><span class="n">SSD_prec_0.5_Oct_Crop_Unmasked</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">crop</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_prec_0.5_Oct</span><span class="p">,</span><span class="w">
+                                               </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Mask to South Sudan and plot</span><span class="w">
+</span><span class="n">SSD_prec_0.5_Oct_Crop</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">mask</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_prec_0.5_Oct_Crop_Unmasked</span><span class="p">,</span><span class="w">
+                                      </span><span class="n">mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="p">)</span><span class="w">
+
+</span><span class="n">raster_colorPal_prec_SSD</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w">
+                                         </span><span class="n">domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">SSD_prec_0.5_Oct_Crop</span><span class="p">),</span><span class="w">
+                                         </span><span class="n">na.color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">)</span><span class="w"> </span><span class="c1"># Define palette</span><span class="w">
+
+</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_prec_0.5_Oct_Crop</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec_SSD</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addPolygons</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">popup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="o">$</span><span class="n">NAME_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSD_Adm_0</span><span class="o">$</span><span class="n">NAME_0</span><span class="p">,</span><span class="w">
+              </span><span class="n">fillOpacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w">
+              </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"red"</span><span class="p">,</span><span class="w">
+              </span><span class="n">weight</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLegend</span><span class="p">(</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"October precipitation (mm)&lt;br&gt;(0.5' res)"</span><span class="p">,</span><span class="w">
+            </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">SSD_prec_0.5_Oct_Crop</span><span class="p">),</span><span class="w">
+            </span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec_SSD</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-9-1.png" alt="" /></p>
+
+<p><em>In class assignement: map the 1 (minute of a degree) resolution January
+precipitation for Kenya in inches?</em></p>
+
+<h3 id="other-r-packages">Other R packages</h3>
+
+<p>Here are a few R packages with spatial data available:</p>
+
+<ul>
+  <li>raster</li>
+  <li><a href="https://github.com/16EAGLE/getSpatialData">getSpatialData</a></li>
+  <li>rgistools</li>
+  <li>rstoolbox</li>
+  <li>sentinel2</li>
+  <li>MODIS</li>
+</ul>
+
+<h3 id="on-the-web">On the web</h3>
+
+<p>Often times those R packages simply get you an easier access to data
+hosted online by various research groups and can have useful additional
+functions to process the data. Sometimes though, no one has put the
+effort to package the data you are looking for or you might not know
+that it is already available in R. In those cases, you end up needing to
+download the data online (which can come in many different formats) and
+import in R yourself.</p>
+
+<p>Download the precipitation WorldClim variable at 10m resolution
+available <a href="https://www.worldclim.org/data/worldclim21.html">here</a>. What
+you get is a folder with 12 <em>.tif</em> files, presumably representing
+monthly precipitation (in mm and averaged over the 1970-2000 period),
+presumably over the entire globe. As you encounter new file formats that
+you don’t know how to import in R, it’s good practice to scout forums.
+Let’s google <a href="https://www.google.com/search?client=safari&amp;rls=en&amp;q=How+to+import+.tif+files+in+R">How to import .tif files in
+R?</a>
+and find our answer on that
+<a href="https://stackoverflow.com/questions/16803503/reading-a-tif-file-in-r">post</a>.
+Fortunately, it looks like the raster function of the ‘raster’ package
+reads in <em>.tif</em> files.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Path to wc2 folder you just downloaded</span><span class="w">
+</span><span class="n">path_to_wc2_folder</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"~/Documents/GitHub/phw272c.github.io/_source/wc2.1_10m_prec/"</span><span class="w">
+
+</span><span class="c1"># List files in folder downloaded</span><span class="w">
+</span><span class="n">list.files</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">path_to_wc2_folder</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  [1] "readme.txt"            "wc2.1_10m_prec_01.tif" "wc2.1_10m_prec_02.tif"
+##  [4] "wc2.1_10m_prec_03.tif" "wc2.1_10m_prec_04.tif" "wc2.1_10m_prec_05.tif"
+##  [7] "wc2.1_10m_prec_06.tif" "wc2.1_10m_prec_07.tif" "wc2.1_10m_prec_08.tif"
+## [10] "wc2.1_10m_prec_09.tif" "wc2.1_10m_prec_10.tif" "wc2.1_10m_prec_11.tif"
+## [13] "wc2.1_10m_prec_12.tif"
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">list.files</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">path_to_wc2_folder</span><span class="p">,</span><span class="w"> </span><span class="n">pattern</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">".tif"</span><span class="p">)</span><span class="w"> </span><span class="c1"># Restrict to .tif files</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  [1] "wc2.1_10m_prec_01.tif" "wc2.1_10m_prec_02.tif" "wc2.1_10m_prec_03.tif"
+##  [4] "wc2.1_10m_prec_04.tif" "wc2.1_10m_prec_05.tif" "wc2.1_10m_prec_06.tif"
+##  [7] "wc2.1_10m_prec_07.tif" "wc2.1_10m_prec_08.tif" "wc2.1_10m_prec_09.tif"
+## [10] "wc2.1_10m_prec_10.tif" "wc2.1_10m_prec_11.tif" "wc2.1_10m_prec_12.tif"
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Read in October precipitation</span><span class="w">
+</span><span class="n">wc2_prec_10_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">paste0</span><span class="p">(</span><span class="n">path_to_wc2_folder</span><span class="p">,</span><span class="w"> </span><span class="s2">"wc2.1_10m_prec_10.tif"</span><span class="p">))</span><span class="w">
+
+</span><span class="c1"># Compare to data downloaded via raster::getData()</span><span class="w">
+</span><span class="n">wc2_prec_10_Oct</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1080, 2160, 2332800  (nrow, ncol, ncell)
+## resolution : 0.1666667, 0.1666667  (x, y)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : wc2.1_10m_prec_10.tif 
+## names      : wc2.1_10m_prec_10 
+## values     : 0, 2328  (min, max)
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_prec_10_Oct</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 900, 2160, 1944000  (nrow, ncol, ncell)
+## resolution : 0.1666667, 0.1666667  (x, y)
+## extent     : -180, 180, -60, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : prec10.bil 
+## names      : prec10 
+## values     : 0, 980  (min, max)
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"CartoDB.Positron"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ETH_prec_10_Oct</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">,</span><span class="w">
+                 </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"raster::getData"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wc2_prec_10_Oct</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">,</span><span class="w">
+                 </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"WorldClim.com download"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLegend</span><span class="p">(</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"October precipitation (mm)&lt;br&gt;(10' res)"</span><span class="p">,</span><span class="w">
+            </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">values</span><span class="p">(</span><span class="n">ETH_prec_10_Oct</span><span class="p">),</span><span class="w">
+            </span><span class="n">pal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">raster_colorPal_prec</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLayersControl</span><span class="p">(</span><span class="n">overlayGroups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"raster::getData"</span><span class="p">,</span><span class="w"> </span><span class="s2">"WorldClim.com download"</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">hideGroup</span><span class="p">(</span><span class="s2">"WorldClim.com download"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-11-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Another more elegant way to read in the data downloaded online</span><span class="w">
+</span><span class="n">wc2_prec_10</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">stack</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">paste0</span><span class="p">(</span><span class="n">path_to_wc2_folder</span><span class="p">,</span><span class="w"> 
+                                        </span><span class="n">list.files</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">path_to_wc2_folder</span><span class="p">,</span><span class="w">
+                                                   </span><span class="n">pattern</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">".tif"</span><span class="p">)))</span><span class="w">
+</span><span class="n">wc2_prec_10</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterStack 
+## dimensions : 1080, 2160, 2332800, 12  (nrow, ncol, ncell, nlayers)
+## resolution : 0.1666667, 0.1666667  (x, y)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## names      : wc2.1_10m_prec_01, wc2.1_10m_prec_02, wc2.1_10m_prec_03, wc2.1_10m_prec_04, wc2.1_10m_prec_05, wc2.1_10m_prec_06, wc2.1_10m_prec_07, wc2.1_10m_prec_08, wc2.1_10m_prec_09, wc2.1_10m_prec_10, wc2.1_10m_prec_11, wc2.1_10m_prec_12 
+## min values :                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0 
+## max values :               908,               793,               720,              1004,              2068,              2210,              2381,              1674,              1955,              2328,               718,               806
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wc2_prec_10</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1080, 2160, 2332800  (nrow, ncol, ncell)
+## resolution : 0.1666667, 0.1666667  (x, y)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : wc2.1_10m_prec_10.tif 
+## names      : wc2.1_10m_prec_10 
+## values     : 0, 2328  (min, max)
+</code></pre></div></div>
+
+<h3 id="other-online-resources">Other online resources</h3>
+
+<p>Here are a few good websites with free downloadable spatial data</p>
+
+<ul>
+  <li><a href="http://worldclim.org/version2">Worldclim</a></li>
+  <li><a href="https://www.chc.ucsb.edu/data/chirps">CHIRPS</a></li>
+  <li><a href="https://earthengine.google.com">Google Earth Engine</a></li>
+  <li><a href="https://climateengine.org">Climate Engine</a></li>
+  <li><a href="https://land.copernicus.eu">Copernicus Land data</a></li>
+  <li><a href="https://map.ox.ac.uk">Malaria Atlas Project</a></li>
+  <li><a href="https://modis.gsfc.nasa.gov">MODIS</a></li>
+</ul>
+
+<h2 id="spatial-data-where-do-they-come-from">Spatial data: where do they come from?</h2>
+
+<p>We often interact with climatic and environmental raster data, like the
+land use dataset shown below. But how are these datasets produced? The
+answer is via remotely sensed imagery, such as images taken by
+satellites, planes or drones. These data can sometimes be combined with
+ground data, such as data from weather stations.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Land use (# For information on land use classifications see http://due.esrin.esa.int/files/GLOBCOVER2009_Validation_Report_2.2.pdf)</span><span class="w">
+</span><span class="n">ETH_land_use</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/ETH_land_use.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">ETH_land_use</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-12-1.png" alt="" /></p>
+
+<p><img src="../images/week-5/GlobalCover.png" alt="" /></p>
+
+<h3 id="remote-sensing-data">Remote sensing data</h3>
+
+<p><img src="../images/week-5//NASA.png" alt="" /></p>
+
+<p>Satellites orbiting around the globe carry instruments to take
+measurements. Just likes our eyes or cameras, the sensors onboard
+satellites receive a radiation that was emitted by a source of light
+(sun, flash, light bulb, etc…) and reflected by an object. The
+differences between the pre and post reflection radiations characterize
+properties of the reflecting object such as color for which our eyes
+have been optimized to perceive. You can picture the radiation as a wave
+signal. Speed radars and the SRTM mission act in the same way (except
+they also send the incident radiation) and from the difference in the 2
+wave signals calculate speed and elevation respectively.</p>
+
+<p>Speed, elevation, color are calculated based on the wavelengths property
+of the wave. Sensors onboard remote sensing satelitte mission can
+receive multiple waves across the spectrum.</p>
+
+<p><img src="../images/week-5/Spectrum.png" alt="" /></p>
+
+<p>For instance the satellite Landsat-8 has 11 bands (i.e wavelengths
+ranges) at which it measures the reflectance (fraction of incident
+electromagnetic power that is reflected) which we can simply see as a
+measure of ‘light’ intensity reflected by the earth surface.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Load some Etiophia Landsat data for the year 2017 (only 7 first bands available)</span><span class="w">
+</span><span class="n">Landsat_Band_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band1.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">Landsat_Band_2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band2.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">Landsat_Band_3</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band3.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">Landsat_Band_4</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band4.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">Landsat_Band_5</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band5.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">Landsat_Band_6</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band6.tif?raw=true"</span><span class="p">)</span><span class="w">
+</span><span class="n">Landsat_Band_7</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">raster</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/phw272c/phw272c.github.io/blob/master/data/Landsat/Landsat_2017_Band7.tif?raw=true"</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Stack together layers</span><span class="w">
+</span><span class="n">Landsat_Band</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">stack</span><span class="p">(</span><span class="n">Landsat_Band_1</span><span class="p">,</span><span class="w">
+                              </span><span class="n">Landsat_Band_2</span><span class="p">,</span><span class="w">
+                              </span><span class="n">Landsat_Band_3</span><span class="p">,</span><span class="w">
+                              </span><span class="n">Landsat_Band_4</span><span class="p">,</span><span class="w">
+                              </span><span class="n">Landsat_Band_5</span><span class="p">,</span><span class="w">
+                              </span><span class="n">Landsat_Band_6</span><span class="p">,</span><span class="w">
+                              </span><span class="n">Landsat_Band_7</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Explore the reflectance values. Assume you should normalize by 10000 to get reflectance</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">Landsat_Band</span><span class="p">[[</span><span class="m">1</span><span class="p">]])</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##             B1
+## Min.      73.0
+## 1st Qu.  338.0
+## Median   403.0
+## 3rd Qu.  493.5
+## Max.    4032.0
+## NA's       0.0
+</code></pre></div></div>
+
+<h3 id="how-do-you-get-from-reflectance-to-land-use-surfaces">How do you get from reflectance to land use surfaces?</h3>
+
+<p>First you can read some
+<a href="https://www.usgs.gov/faqs/what-are-best-landsat-spectral-bands-use-my-research">documentation</a>
+about the wavelength ranges covered by band for your satellite.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Label bands accordingly</span><span class="w">
+</span><span class="nf">names</span><span class="p">(</span><span class="n">Landsat_Band</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'Ultra.blue'</span><span class="p">,</span><span class="w"> </span><span class="s1">'Blue'</span><span class="p">,</span><span class="w"> </span><span class="s1">'Green'</span><span class="p">,</span><span class="w"> </span><span class="s1">'Red'</span><span class="p">,</span><span class="w"> </span><span class="s1">'NIR'</span><span class="p">,</span><span class="w"> </span><span class="s1">'SWIR1'</span><span class="p">,</span><span class="w"> </span><span class="s1">'SWIR2'</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Plot individual layers</span><span class="w">
+</span><span class="n">par</span><span class="p">(</span><span class="n">mfrow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="m">2</span><span class="p">))</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">Landsat_Band_2</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Blue"</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gray</span><span class="p">(</span><span class="m">0</span><span class="o">:</span><span class="m">100</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">100</span><span class="p">))</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">Landsat_Band_3</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Green"</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gray</span><span class="p">(</span><span class="m">0</span><span class="o">:</span><span class="m">100</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">100</span><span class="p">))</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">Landsat_Band_4</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Red"</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gray</span><span class="p">(</span><span class="m">0</span><span class="o">:</span><span class="m">100</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">100</span><span class="p">))</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">Landsat_Band_5</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"NIR"</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gray</span><span class="p">(</span><span class="m">0</span><span class="o">:</span><span class="m">100</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="m">100</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-14-1.png" alt="" /></p>
+
+<p><em>Pop quiz: what do you think is in the top right corner of our spatial
+extent?</em></p>
+
+<p>Notice the difference in shading and range of legends between the
+different bands. This is because different surface features reflect the
+incident solar radiation differently. Each layer represent how much
+incident solar radiation is reflected for a particular wavelength range.
+For example, vegetation reflects more energy in NIR than other
+wavelengths and thus appears brighter. In contrast, water absorbs most
+of the energy in the NIR wavelength and it appears dark.</p>
+
+<p>We do not gain that much information from these grey-scale plots; they
+are often combined into a “composite” to create more interesting plots.
+To make a “true (or natural) color” image, that is, something that looks
+like a normal photograph (vegetation in green, water blue etc), we need
+bands in the red, green and blue regions. For this Landsat image, band 4
+(red), 3 (green), and 2 (blue) can be used. The plotRGB method can be
+used to combine them into a single composite. You can also supply
+additional arguments to plotRGB to improve the visualization (e.g. a
+linear stretch of the values, using strecth = “lin”).</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster</span><span class="o">::</span><span class="n">plotRGB</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Landsat_Band</span><span class="p">,</span><span class="w">
+                </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w">
+                </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w">
+                </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w">
+                </span><span class="n">stretch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lin"</span><span class="p">,</span><span class="w">
+                </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Landsat True Color Composite"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-15-1.png" alt="" /></p>
+
+<p>The true-color composite reveals much more about the landscape than the
+earlier gray images. Another popular image visualization method in
+remote sensing is known “false color” image in which NIR, red, and green
+bands are combined. This representation is popular as it makes it easy
+to see the vegetation (in red).</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster</span><span class="o">::</span><span class="n">plotRGB</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Landsat_Band</span><span class="p">,</span><span class="w">
+                </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">,</span><span class="w">
+                </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w">
+                </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w">
+                </span><span class="n">stretch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lin"</span><span class="p">,</span><span class="w">
+                </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Landsat False Color Composite"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-16-1.png" alt="" /></p>
+
+<h3 id="relation-between-bands">Relation between bands</h3>
+
+<p>A scatterplot matrix can be helpful in exploring relationships between
+raster layers. This can be done with the pairs() function of the
+“raster” package.</p>
+
+<p>Plot of reflection in the ultra-blue wavelength against reflection in
+the blue wavelength.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster</span><span class="o">::</span><span class="n">pairs</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Landsat_Band</span><span class="p">[[</span><span class="m">1</span><span class="o">:</span><span class="m">2</span><span class="p">]],</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Ultra-blue versus Blue"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in graphics::par(usr): argument 1 does not name a graphical parameter
+
+## Warning in graphics::par(usr): argument 1 does not name a graphical parameter
+
+## Warning in graphics::par(usr): argument 1 does not name a graphical parameter
+</code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-17-1.png" alt="" /></p>
+
+<p>Plot of reflection in the red wavelength against reflection in the NIR
+wavelength.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster</span><span class="o">::</span><span class="n">pairs</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Landsat_Band</span><span class="p">[[</span><span class="m">4</span><span class="o">:</span><span class="m">5</span><span class="p">]],</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Red versus NIR"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in graphics::par(usr): argument 1 does not name a graphical parameter
+
+## Warning in graphics::par(usr): argument 1 does not name a graphical parameter
+
+## Warning in graphics::par(usr): argument 1 does not name a graphical parameter
+</code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-18-1.png" alt="" /></p>
+
+<p>The first plot reveals high correlations between the blue wavelength
+regions. Because of the high correlation, we can just use one of the
+blue bands without losing much information. The distribution of points
+in second plot (between NIR and red) is unique due to its triangular
+shape. Vegetation reflects more in the NIR range than in the red and
+creates the upper corner close to NIR (y) axis. Water absorbs energy
+from all the bands and occupies the location close to origin. The
+furthest corner is created due to highly reflecting surface features
+like bright soil or concrete.</p>
+
+<h3 id="spectral-profiles">Spectral profiles</h3>
+
+<p>A plot of the spectrum (all bands) for pixels representing a certain
+earth surface features (e.g. water) is known as a spectral profile. Such
+profiles demonstrate the differences in spectral properties of various
+earth surface features and constitute the basis for image analysis.</p>
+
+<p>Let’s start by loading some training data from the region which compiles
+GPS coordinates of points for which we know the Land use and Land cover
+(LULC) class.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Load the training dataset, which compiles GPS coordinates of points for which we know the Land use and Land cover (LULC) class</span><span class="w">
+</span><span class="n">Training_Data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/LULC_Training_Tana.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">T</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Explore the data</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">Training_Data</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   Latitude Longitude LULC
+## 1 11.75859  37.26399   12
+## 2 11.70965  37.14431   12
+## 3 11.79550  37.38545   17
+## 4 11.78845  37.15329   10
+## 5 11.50553  37.15888   10
+## 6 11.79360  37.29655   10
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Label LULC classes</span><span class="w">
+</span><span class="n">Training_Data</span><span class="o">$</span><span class="n">LULC</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">factor</span><span class="p">(</span><span class="n">Training_Data</span><span class="o">$</span><span class="n">LULC</span><span class="p">,</span><span class="w">
+                             </span><span class="n">levels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">9</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">11</span><span class="p">,</span><span class="w"> </span><span class="m">12</span><span class="p">,</span><span class="w"> </span><span class="m">13</span><span class="p">,</span><span class="w"> </span><span class="m">17</span><span class="p">),</span><span class="w">
+                             </span><span class="n">labels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"Savanna"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Grassland"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Wetland"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Cropland"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Urban"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Water"</span><span class="p">))</span><span class="w">
+
+</span><span class="c1"># Frequency table of classes</span><span class="w">
+</span><span class="n">table</span><span class="p">(</span><span class="n">Training_Data</span><span class="o">$</span><span class="n">LULC</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+##   Savanna Grassland   Wetland  Cropland     Urban     Water 
+##         4       481        27       328         4       156
+</code></pre></div></div>
+
+<p>You can now convert the data frame to a spatial object to extract
+reflectance values at training points. Spectral values can be extracted
+from any multispectral data set using extract() function of the “raster”
+package.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Convert data frame to a SpatialPointsDataFrame by specifying coordinates</span><span class="w">
+</span><span class="n">Training_Data_DF</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">Training_Data</span><span class="w"> </span><span class="c1"># Save a data frame version</span><span class="w">
+</span><span class="n">sp</span><span class="o">::</span><span class="n">coordinates</span><span class="p">(</span><span class="n">Training_Data</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"Longitude"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Latitude"</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Extract values from the reflectance images at the point locations and merge to training dataset</span><span class="w">
+</span><span class="n">Training_Data_Reflectance</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">cbind</span><span class="p">(</span><span class="n">data.frame</span><span class="p">(</span><span class="n">LULC</span><span class="w"> </span><span class="o">=</span><span class="n">Training_Data_DF</span><span class="o">$</span><span class="n">LULC</span><span class="p">),</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">raster</span><span class="o">::</span><span class="n">extract</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Landsat_Band</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Training_Data</span><span class="p">)))</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">Training_Data_Reflectance</span><span class="p">)</span><span class="w"> 
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##        LULC Ultra.blue Blue Green  Red  NIR SWIR1 SWIR2
+## 1  Cropland        372  512   823  991 2494  2548  1620
+## 2  Cropland        375  483   795 1183 2038  1886  1613
+## 3     Water        603  780  1378 1111  259   171   141
+## 4 Grassland        364  485   806  917 1767  1524   997
+## 5 Grassland        355  437   693  765 1972  1990  1427
+## 6 Grassland        407  499   759  868 2254  2161  1433
+</code></pre></div></div>
+
+<p>We can now compute the mean reflectance values for each class and each
+band and plot to obtain the spectral profiles.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Average reflectance values over LULC classes</span><span class="w">
+</span><span class="n">LULC_Mean_Reflectance</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">stats</span><span class="o">::</span><span class="n">aggregate</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">.</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">LULC</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Training_Data_Reflectance</span><span class="p">,</span><span class="w"> </span><span class="n">FUN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">){</span><span class="nf">round</span><span class="p">(</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="w"> </span><span class="n">digits</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">)})</span><span class="w">
+</span><span class="n">LULC_Mean_Reflectance</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##        LULC Ultra.blue   Blue   Green     Red     NIR   SWIR1   SWIR2
+## 1   Savanna     404.00 455.25  702.12  747.62 2303.88 1639.50 1085.62
+## 2 Grassland     367.07 450.39  731.63  883.92 2137.84 2044.79 1478.32
+## 3   Wetland     360.65 440.81  760.96  664.87 1929.70 1099.56  586.33
+## 4  Cropland     408.25 503.26  794.93 1030.95 2308.46 2169.48 1615.76
+## 5     Urban     476.38 580.12  848.00  957.88 2128.75 1884.00 1393.12
+## 6     Water     571.12 731.72 1313.05 1131.43  302.03  170.37  136.47
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Reshape to long format</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">tidyr</span><span class="p">)</span><span class="w">
+</span><span class="n">LULC_Mean_Reflectance_Long</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tidyr</span><span class="o">::</span><span class="n">gather</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LULC_Mean_Reflectance</span><span class="p">,</span><span class="w">
+                                            </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Band"</span><span class="p">,</span><span class="w">
+                                            </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Reflectance"</span><span class="p">,</span><span class="w">
+                                            </span><span class="o">-</span><span class="s2">"LULC"</span><span class="p">,</span><span class="w">
+                                            </span><span class="n">factor_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">T</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Plot</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
+</span><span class="n">ggplot2</span><span class="o">::</span><span class="n">ggplot</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LULC_Mean_Reflectance_Long</span><span class="p">,</span><span class="w"> 
+                </span><span class="n">mapping</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Band</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Reflectance</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LULC</span><span class="p">,</span><span class="w"> </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LULC</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w">
+    </span><span class="n">geom_line</span><span class="p">()</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-21-1.png" alt="" /></p>
+
+<p>The spectral profiles show (dis)similarity in the reflectance of
+different features on the earth’s surface (or above it). ‘Water’ shows
+relatively low reflection in all wavelengths, while all other classes
+have relatively high reflectance in the longer wavelengts. Remember
+though that our training data only has 1000 points across 6 LULC classes
+only have a few observation for 3 of those classes.</p>
+
+<h3 id="classification">Classification</h3>
+
+<p>So now let’s try to predict LULC and produce our raster layer by fitting
+a classification model using the “randomForest” package.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">randomForest</span><span class="p">)</span><span class="w">
+</span><span class="n">RF_Model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">randomForest</span><span class="o">::</span><span class="n">randomForest</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Training_Data_Reflectance</span><span class="p">[,</span><span class="m">2</span><span class="o">:</span><span class="m">8</span><span class="p">],</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Training_Data_Reflectance</span><span class="p">[,</span><span class="m">1</span><span class="p">])</span><span class="w">
+</span><span class="n">RF_Model</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+## Call:
+##  randomForest(x = Training_Data_Reflectance[, 2:8], y = Training_Data_Reflectance[,      1]) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 2
+## 
+##         OOB estimate of  error rate: 23.2%
+## Confusion matrix:
+##           Savanna Grassland Wetland Cropland Urban Water class.error
+## Savanna         0         1       2        1     0     0  1.00000000
+## Grassland       1       380       8       91     0     1  0.20997921
+## Wetland         1        10      12        0     0     4  0.55555556
+## Cropland        0       103       1      224     0     0  0.31707317
+## Urban           0         2       0        2     0     0  1.00000000
+## Water           0         0       4        0     0   152  0.02564103
+</code></pre></div></div>
+
+<p>By inspecting the output of the model, we realize it is not doing a
+super job. Again remember we only have a few observations in our
+training dataset. Classification of the ‘water’ class is pretty good,
+thanks to its particular spectral profile. Now that we have a model of
+the relationship between land cover and reflectance values, we can
+predict land cover over our entire region.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">LULC_predicted</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">predict</span><span class="p">(</span><span class="n">object</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Landsat_Band</span><span class="p">,</span><span class="w">
+                                  </span><span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RF_Model</span><span class="p">,</span><span class="w">
+                                  </span><span class="n">progress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'text'</span><span class="p">,</span><span class="w">
+                                  </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'response'</span><span class="p">,</span><span class="w">
+                                  </span><span class="n">overwrite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w"> 
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   |                                                                              |                                                                      |   0%
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">RColorBrewer</span><span class="p">)</span><span class="w">
+</span><span class="n">factpal_LULC</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorFactor</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">brewer.pal</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">levels</span><span class="p">(</span><span class="n">Training_Data_DF</span><span class="o">$</span><span class="n">LULC</span><span class="p">)),</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Set1"</span><span class="p">),</span><span class="w">
+                            </span><span class="n">domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="nf">length</span><span class="p">(</span><span class="n">levels</span><span class="p">(</span><span class="n">Training_Data_DF</span><span class="o">$</span><span class="n">LULC</span><span class="p">))))</span><span class="w"> </span><span class="c1"># define color palette</span><span class="w">
+
+</span><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
+  </span><span class="n">addProviderTiles</span><span class="p">(</span><span class="s2">"Esri.WorldImagery"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addRasterImage</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LULC_predicted</span><span class="p">,</span><span class="w">
+                 </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">factpal_LULC</span><span class="p">,</span><span class="w">
+                 </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Predicted LULC"</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLegend</span><span class="p">(</span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Predicted LULC"</span><span class="p">,</span><span class="w">
+            </span><span class="n">colors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">brewer.pal</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">levels</span><span class="p">(</span><span class="n">Training_Data_DF</span><span class="o">$</span><span class="n">LULC</span><span class="p">)),</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Set1"</span><span class="p">),</span><span class="w">
+            </span><span class="n">labels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"Savanna"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Grassland"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Wetland"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Cropland"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Urban"</span><span class="p">,</span><span class="w"> </span><span class="s2">"Water"</span><span class="p">),</span><span class="w">
+            </span><span class="n">opacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">addLayersControl</span><span class="p">(</span><span class="n">overlayGroups</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"Predicted LULC"</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-5/unnamed-chunk-23-1.png" alt="" /></p>
+
+<h2 id="concluding-remarks">Concluding remarks</h2>
+
+<p>Now you have a sense of how remote sensing can be used to produce all
+sort of environmental layers. The quality of those will depend on the
+spatial and temporal resolutions of the sensors as well as the
+techniques used to process the raw data (clouds?) and model it to
+produce more useful layers.</p>
+
+<p><img src="../images/week-5/Hagibis.jpg" alt="" /></p>
+
+<h3 id="resources">Resources</h3>
+
+<p>This week borrows heavily from <a href="https://rspatial.org/rs/rs.pdf">this excellent
+tutorial</a>.</p>
+
+<h3 id="readings">Readings</h3>
+
+<p>Hay SI. An overview of remote sensing and geodesy for epidemiology and
+public health application. Advances in parasitology. 2000 Jan 1;47:1-35.</p>
+
+<p>Simoonga C, Utzinger J, Brooker S, Vounatsou P, Appleton CC, Stensgaard
+AS, Olsen A, Kristensen TK. Remote sensing, geographical information
+system and spatial analysis for schistosomiasis epidemiology and ecology
+in Africa. Parasitology. 2009 Nov;136(13):1683-93.</p>
+
+<p>Savory DJ, Andrade-Pacheco R, Gething PW, Midekisa A, Bennett A,
+Sturrock HJ. Intercalibration and Gaussian process modeling of nighttime
+lights imagery for measuring urbanization trends in Africa 2000–2013.
+Remote Sensing. 2017 Jul;9(7):713.</p>
+
+<p>Yang GJ, Vounatsou P, Xiao-Nong Z, Utzinger J, Tanner M. A review of
+geographic information system and remote sensing with applications to
+the epidemiology and control of schistosomiasis in China. Acta tropica.
+2005 Nov 1;96(2-3):117-29.</p>
+
+  </div><a class="u-url" href="/lab-4/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p>This course has been developed over the years by many contributors including Hugh Sturrock, Adam Bennett, Francois Rerolle, Ricardo Andrade, Adam Readhead, David Connell, and Erika Foster. <a href="/about">Read about the team</a>.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer></body>
+
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Lab 6 - Spatial regression of areal data | Applied Spatial Data Science for Public Health</title>
+<meta name="generator" content="Jekyll v3.9.1" />
+<meta property="og:title" content="Lab 6 - Spatial regression of areal data" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="You now have the skills to:" />
+<meta property="og:description" content="You now have the skills to:" />
+<link rel="canonical" href="http://localhost:4000/lab-6/" />
+<meta property="og:url" content="http://localhost:4000/lab-6/" />
+<meta property="og:site_name" content="Applied Spatial Data Science for Public Health" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-03-09T00:00:00-08:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Lab 6 - Spatial regression of areal data" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-03-09T00:00:00-08:00","datePublished":"2023-03-09T00:00:00-08:00","description":"You now have the skills to:","headline":"Lab 6 - Spatial regression of areal data","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/lab-6/"},"url":"http://localhost:4000/lab-6/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Applied Spatial Data Science for Public Health" /></head>
+<body>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Lab 6 - Spatial regression of areal data</h1>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>You now have the skills to:</p>
+
+<ul>
+  <li>
+    <p>map spatial data</p>
+  </li>
+  <li>
+    <p>obtain, generate and manipulate raster data</p>
+  </li>
+  <li>
+    <p>conduct spatial interpolation</p>
+  </li>
+  <li>
+    <p>identify clustering</p>
+  </li>
+  <li>
+    <p>fit spatial regression models to point prevalence data</p>
+  </li>
+</ul>
+
+<p>This week are going to introduce 2 more topics.</p>
+
+<p>1)  Modeling count data</p>
+
+<p>2)  Fitting spatial models to areal (i.e. polygon) data</p>
+
+<h2 id="modeling-count-data">Modeling count data</h2>
+
+<p>The malaria data in Oromia is an example of binomial data. You are also
+likely to explore count data (e.g. numbers of disease cases). We can use
+a similar process to model these data. Let’s look at an example of
+counts recorded over areal units (i.e. polygons). These data contain
+information on leukemia cases from New York (Turnbull et al 1990). We’ll
+load in the shape files for New York census tracts and the locations of
+hazardous waste sites as potential exposures.</p>
+
+<p>First, load the libraries required for this week</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rgdal</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">spdep</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">spaMM</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">viridis</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rgdal</span><span class="o">::</span><span class="n">readOGR</span><span class="p">(</span><span class="s2">"https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## Warning: OGR support is provided by the sf and terra packages among others
+
+## OGR data source with driver: GeoJSON 
+## Source: "https://github.com/phw272c/phw272c.github.io/raw/4b27bcd03f556dc666291b704e6a0f00812f51ae/data/nydata.geojson", layer: "nydata"
+## with 281 features
+## It has 17 fields
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's look at the data</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">nydata</span><span class="o">@</span><span class="n">data</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##          AREANAME     AREAKEY        X        Y POP8 TRACTCAS  PROPCAS
+## 0 Binghamton city 36007000100 4.069397 -67.3533 3540     3.08 0.000870
+## 1 Binghamton city 36007000200 4.639371 -66.8619 3560     4.08 0.001146
+## 2 Binghamton city 36007000300 5.709063 -66.9775 3739     1.09 0.000292
+## 3 Binghamton city 36007000400 7.613831 -65.9958 2784     1.07 0.000384
+## 4 Binghamton city 36007000500 7.315968 -67.3183 2571     3.06 0.001190
+## 5 Binghamton city 36007000600 8.558753 -66.9344 2729     1.06 0.000388
+##   PCTOWNHOME PCTAGE65P        Z  AVGIDIST PEXPOSURE   Cases       Xm       Ym
+## 0  0.3277311 0.1466102  0.14197 0.2373852  3.167099 3.08284 4069.397 -67353.3
+## 1  0.4268293 0.2351124  0.35555 0.2087413  3.038511 4.08331 4639.371 -66861.9
+## 2  0.3377396 0.1380048 -0.58165 0.1708548  2.838229 1.08750 5709.063 -66977.5
+## 3  0.4616048 0.1188937 -0.29634 0.1406045  2.643366 1.06515 7613.831 -65995.8
+## 4  0.1924370 0.1415791  0.45689 0.1577753  2.758587 3.06017 7315.968 -67318.3
+## 5  0.3651786 0.1410773 -0.28123 0.1726033  2.848411 1.06386 8558.753 -66934.4
+##     Xshift  Yshift
+## 0 423391.0 4661502
+## 1 423961.0 4661993
+## 2 425030.6 4661878
+## 3 426935.4 4662859
+## 4 426637.5 4661537
+## 5 427880.3 4661921
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Let's create an incidence column</span><span class="w">
+</span><span class="n">nydata</span><span class="o">$</span><span class="n">inc_per_1000</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">Cases</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">nydata</span><span class="o">$</span><span class="n">POP8</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000</span><span class="w">
+</span><span class="n">cases_pal</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorBin</span><span class="p">(</span><span class="n">viridis</span><span class="p">(</span><span class="m">4</span><span class="p">),</span><span class="w"> </span><span class="n">bins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">0.1</span><span class="p">,</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">8</span><span class="p">),</span><span class="w"> </span><span class="n">nydata</span><span class="o">$</span><span class="n">inc_per_1000</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cases_pal</span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">inc_per_1000</span><span class="p">),</span><span class="w"> </span><span class="n">asp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
+</span><span class="n">legend</span><span class="p">(</span><span class="s1">'bottomright'</span><span class="p">,</span><span class="w"> </span><span class="n">legend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'0 - 0.1'</span><span class="p">,</span><span class="w"> </span><span class="s1">'0.1 - 0.5'</span><span class="p">,</span><span class="w"> </span><span class="s1">'0.5 - 1'</span><span class="p">,</span><span class="w"> </span><span class="s1">'1 - 8'</span><span class="p">),</span><span class="w">
+       </span><span class="n">fill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cases_pal</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">0.1</span><span class="p">,</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">8</span><span class="p">)),</span><span class="w">
+       </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Cases / 1000'</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-7/nyc_data-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># For more info on the dataset type ?spData::nydata</span><span class="w">
+</span></code></pre></div></div>
+
+<p>If we are interested in the relationship between incidence of leukemia
+and proximity to hazardous waste sites, we can use a regression
+framework. To model incidence, we will use a Poisson regression which is
+suitable for modeling count outcomes. As we are more interested in
+incidence than numbers of cases (i.e. case numbers are in part driven by
+population), we can include population as an ‘offset’ term which
+effectively allows us to model rates/incidence. Including population as
+an offset is kind of like including population as a fixed effect in the
+background. An offest should be included on the log scale as Poisson
+regression works in log space. Sometimes, the ‘expected’ counts are used
+in place of population. These expected counts are typically just a
+scaled version of population, being the counts you would expect if the
+mean incidence rate was applied to every areal unit.</p>
+
+<p>Let’s try fitting a simple model using the covariates <code class="language-plaintext highlighter-rouge">PEXPOSURE</code> which
+is “exposure potential” calculated as the inverse distance between each
+census tract centroid and the nearest TCE site.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># First round the case numbers</span><span class="w">
+</span><span class="n">nydata</span><span class="o">$</span><span class="n">CASES</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">round</span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">TRACTCAS</span><span class="p">)</span><span class="w">
+</span><span class="n">nyc_glm_mod</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">glm</span><span class="p">(</span><span class="n">CASES</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">PEXPOSURE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PCTOWNHOME</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PCTAGE65P</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">POP8</span><span class="p">),</span><span class="w"> 
+                     </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'poisson'</span><span class="p">)</span><span class="w">
+</span><span class="n">summary</span><span class="p">(</span><span class="n">nyc_glm_mod</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## 
+## Call:
+## glm(formula = CASES ~ PEXPOSURE + PCTOWNHOME + PCTAGE65P, family = "poisson", 
+##     data = nydata, offset = log(POP8))
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.9119  -1.1299  -0.1773   0.6448   3.2443  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -8.18147    0.18581 -44.033  &lt; 2e-16 ***
+## PEXPOSURE    0.15259    0.03166   4.819 1.44e-06 ***
+## PCTOWNHOME  -0.35923    0.19344  -1.857   0.0633 .  
+## PCTAGE65P    4.04964    0.60658   6.676 2.45e-11 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 457.66  on 280  degrees of freedom
+## Residual deviance: 382.63  on 277  degrees of freedom
+## AIC: 957.38
+## 
+## Number of Fisher Scoring iterations: 5
+</code></pre></div></div>
+
+<p>We can see that ‘PEXPOSURE’ is positively related to incidence, i.e. the
+further from contamination sites, the lower the risk of leukemia. We can
+plot fitted versus observed values.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Scatter plot</span><span class="w">
+</span><span class="n">ggplot</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">nyc_glm_mod</span><span class="o">$</span><span class="n">fitted.values</span><span class="p">,</span><span class="w"> </span><span class="n">nydata</span><span class="o">$</span><span class="n">CASES</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-7/poisson_validation-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create maps</span><span class="w">
+</span><span class="n">nydata</span><span class="o">$</span><span class="n">fitted</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nyc_glm_mod</span><span class="o">$</span><span class="n">fitted.values</span><span class="w">
+
+</span><span class="n">col_pal</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">9</span><span class="p">))</span><span class="w">
+</span><span class="n">par</span><span class="p">(</span><span class="n">mfrow</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="nf">rep</span><span class="p">(</span><span class="m">0.8</span><span class="p">,</span><span class="m">4</span><span class="p">)))</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col_pal</span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">fitted</span><span class="p">),</span><span class="w"> </span><span class="n">asp</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Fitted'</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col_pal</span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">CASES</span><span class="p">),</span><span class="w"> </span><span class="n">asp</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Observed'</span><span class="p">)</span><span class="w">
+</span><span class="n">legend</span><span class="p">(</span><span class="s2">"bottomright"</span><span class="p">,</span><span class="w"> </span><span class="n">inset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.2</span><span class="p">,</span><span class="w">
+       </span><span class="n">legend</span><span class="o">=</span><span class="m">0</span><span class="o">:</span><span class="m">9</span><span class="p">,</span><span class="w"> </span><span class="n">fill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col_pal</span><span class="p">(</span><span class="m">0</span><span class="o">:</span><span class="m">9</span><span class="p">),</span><span class="w">
+       </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Counts'</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-7/poisson_validation-2.png" alt="" /></p>
+
+<p>However, just as covered in week 6, we are making the assumption that
+the model residuals are independent. In reality, often neighbouring
+values display some correlation. If present, residual spatial
+autocorrelation violates the assumption made when applying GLMs. In
+<a href="../week-4">Week 4</a> we covered how to test for spatial autocorrelation
+(clustering) using a neighborhood matrix. Such an approach is suitable
+for areal data where spatial relationships are often better modeled
+using adjacency as opposed to distances. We can apply the same approach
+using our model residuals to test for residual spatial autocorrelation
+of areal data.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Contiguity neighbors - all that share a boundary point</span><span class="w">
+</span><span class="n">sf</span><span class="o">::</span><span class="n">sf_use_s2</span><span class="p">(</span><span class="kc">FALSE</span><span class="p">)</span><span class="w">          </span><span class="c1">#allows poly2nb to work https://stackoverflow.com/questions/68478179/how-to-resolve-spherical-geometry-failures-when-joining-spatial-data</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Spherical geometry (s2) switched off
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata_nb</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">poly2nb</span><span class="p">(</span><span class="n">nydata</span><span class="p">)</span><span class="w">  </span><span class="c1">#queen contiguity</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in st_is_longlat(pl): bounding box has potentially an invalid value
+## range for longlat data
+
+## Warning in st_is_longlat(pl): bounding box has potentially an invalid value
+## range for longlat data
+
+## Warning in st_is_longlat(x): bounding box has potentially an invalid value range
+## for longlat data
+
+## although coordinates are longitude/latitude, st_intersects assumes that they are planar
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata_nb</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Neighbour list object:
+## Number of regions: 281 
+## Number of nonzero links: 1624 
+## Percentage nonzero weights: 2.056712 
+## Average number of links: 5.779359
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># coordinates</span><span class="w">
+</span><span class="n">coords</span><span class="o">&lt;-</span><span class="n">coordinates</span><span class="p">(</span><span class="n">nydata</span><span class="p">)</span><span class="w">
+
+</span><span class="c1">#view the neighbors</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">asp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata_nb</span><span class="p">,</span><span class="n">coords</span><span class="p">,</span><span class="n">col</span><span class="o">=</span><span class="s2">"blue"</span><span class="p">,</span><span class="n">add</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-7/spatial_dep_test-1.png" alt="" /></p>
+
+<p>Now we have our neighbourhood list, we can run a Conditional
+Autoregessive (CAR) model, which allows us to incorporate the spatial
+autocorrelation between neighbours within our GLM. To do this, we are
+going to stick with the <code class="language-plaintext highlighter-rouge">spaMM</code> package. We first need to convert our
+neighbourhood list to a neighbourhood (adjacency) matrix which is
+required by the function. For a CAR model we have to use binary weights
+(i.e. are you a neighbour 0/1)</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">adj_matrix</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nb2mat</span><span class="p">(</span><span class="n">nydata_nb</span><span class="p">,</span><span class="w"> </span><span class="n">style</span><span class="o">=</span><span class="s2">"B"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The rows and columns of adjMatrix must have names matching those of
+levels of the random effect or else be ordered as increasing values of
+the levels of the geographic location index specifying the spatial
+random effect. In this case, our census tract ID is <code class="language-plaintext highlighter-rouge">AREAKEY</code> which is
+ordered as increasing values, so we can remove the rownames of the
+adjacency matrix. Alternatively, we could set
+<code class="language-plaintext highlighter-rouge">rownames(adj_matrix) &lt;- colnames(adj_matrix) &lt;- nydata$AREAKEY</code></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">row.names</span><span class="p">(</span><span class="n">adj_matrix</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">NULL</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Now we can fit the model. The spatial effect is called using the
+<code class="language-plaintext highlighter-rouge">adjacency</code> function which requires the grouping factor (i.e. the ID of
+each census tract).</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nyc_car_mod</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">fitme</span><span class="p">(</span><span class="n">CASES</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">PEXPOSURE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PCTOWNHOME</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">PCTAGE65P</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">adjacency</span><span class="p">(</span><span class="m">1</span><span class="o">|</span><span class="n">AREAKEY</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w">
+                             </span><span class="n">offset</span><span class="p">(</span><span class="nf">log</span><span class="p">(</span><span class="n">POP8</span><span class="p">)),</span><span class="w"> 
+                     </span><span class="n">adjMatrix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">adj_matrix</span><span class="p">,</span><span class="w">
+                     </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nydata</span><span class="o">@</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">family</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'poisson'</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## If the 'RSpectra' package were installed, an extreme eigenvalue computation could be faster.
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">summary</span><span class="p">(</span><span class="n">nyc_car_mod</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## formula: CASES ~ PEXPOSURE + PCTOWNHOME + PCTAGE65P + adjacency(1 | AREAKEY) + 
+##     offset(log(POP8))
+## Estimation of corrPars and lambda by ML (p_v approximation of logL).
+## Estimation of fixed effects by ML (p_v approximation of logL).
+## Estimation of lambda by 'outer' ML, maximizing logL.
+## family: poisson( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)  -8.1955  0.20389 -40.195
+## PEXPOSURE     0.1510  0.03444   4.386
+## PCTOWNHOME   -0.4165  0.21228  -1.962
+## PCTAGE65P     4.0803  0.68714   5.938
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##      1.rho 
+## -0.2533568 
+##            --- Variance parameters ('lambda'):
+## lambda = var(u) for u ~ Gaussian; 
+##    AREAKEY  :  0.06657  
+## # of obs: 281; # of groups: AREAKEY, 281 
+##  ------------- Likelihood values  -------------
+##                         logLik
+## logL       (p_v(h)): -471.4893
+</code></pre></div></div>
+
+<p>How has the inclusion of a spatial term affected our estimates? Remember
+from week 6, that if you want to generate 95% CIs of your estimates you
+can use the following code</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">terms</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'PEXPOSURE'</span><span class="p">,</span><span class="w"> </span><span class="s1">'PCTOWNHOME'</span><span class="p">,</span><span class="w"> </span><span class="s1">'PCTAGE65P'</span><span class="p">)</span><span class="w">
+</span><span class="n">coefs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">summary</span><span class="p">(</span><span class="n">nyc_car_mod</span><span class="p">)</span><span class="o">$</span><span class="n">beta_table</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## formula: CASES ~ PEXPOSURE + PCTOWNHOME + PCTAGE65P + adjacency(1 | AREAKEY) + 
+##     offset(log(POP8))
+## Estimation of corrPars and lambda by ML (p_v approximation of logL).
+## Estimation of fixed effects by ML (p_v approximation of logL).
+## Estimation of lambda by 'outer' ML, maximizing logL.
+## family: poisson( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)  -8.1955  0.20389 -40.195
+## PEXPOSURE     0.1510  0.03444   4.386
+## PCTOWNHOME   -0.4165  0.21228  -1.962
+## PCTAGE65P     4.0803  0.68714   5.938
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##      1.rho 
+## -0.2533568 
+##            --- Variance parameters ('lambda'):
+## lambda = var(u) for u ~ Gaussian; 
+##    AREAKEY  :  0.06657  
+## # of obs: 281; # of groups: AREAKEY, 281 
+##  ------------- Likelihood values  -------------
+##                         logLik
+## logL       (p_v(h)): -471.4893
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">row</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">row.names</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="n">terms</span><span class="w">
+</span><span class="n">lower</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">coefs</span><span class="p">[</span><span class="n">row</span><span class="p">,</span><span class="s1">'Estimate'</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1.96</span><span class="o">*</span><span class="n">coefs</span><span class="p">[</span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="s1">'Cond. SE'</span><span class="p">]</span><span class="w">
+</span><span class="n">upper</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">coefs</span><span class="p">[</span><span class="n">row</span><span class="p">,</span><span class="s1">'Estimate'</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1.96</span><span class="o">*</span><span class="n">coefs</span><span class="p">[</span><span class="n">row</span><span class="p">,</span><span class="w"> </span><span class="s1">'Cond. SE'</span><span class="p">]</span><span class="w">
+</span><span class="n">data.frame</span><span class="p">(</span><span class="n">terms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">terms</span><span class="p">,</span><span class="w">
+           </span><span class="n">IRR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="n">coefs</span><span class="p">[</span><span class="n">row</span><span class="p">,</span><span class="s1">'Estimate'</span><span class="p">]),</span><span class="w">
+           </span><span class="n">lower</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="n">lower</span><span class="p">),</span><span class="w">
+           </span><span class="n">upper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="n">upper</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##        terms        IRR      lower       upper
+## 1  PEXPOSURE  1.1630502  1.0871430   1.2442575
+## 2 PCTOWNHOME  0.6593295  0.4349178   0.9995348
+## 3  PCTAGE65P 59.1607547 15.3859457 227.4799979
+</code></pre></div></div>
+
+<p>We can see how well the model fits using scatter plots and maps</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Scatter plot</span><span class="w">
+</span><span class="n">ggplot</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">geom_point</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">fitted</span><span class="p">(</span><span class="n">nyc_car_mod</span><span class="p">),</span><span class="w"> </span><span class="n">nydata</span><span class="o">$</span><span class="n">CASES</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-7/car_validation-1.png" alt="" /></p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Create maps</span><span class="w">
+</span><span class="n">nydata</span><span class="o">$</span><span class="n">fitted_car</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">fitted</span><span class="p">(</span><span class="n">nyc_car_mod</span><span class="p">)</span><span class="w">
+
+</span><span class="n">col_pal</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">9</span><span class="p">))</span><span class="w">
+</span><span class="n">par</span><span class="p">(</span><span class="n">mfrow</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="m">1</span><span class="p">),</span><span class="w"> </span><span class="n">mar</span><span class="o">=</span><span class="nf">rep</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="m">4</span><span class="p">))</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col_pal</span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">fitted_car</span><span class="p">),</span><span class="w"> </span><span class="n">asp</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Fitted - CAR'</span><span class="p">)</span><span class="w">
+</span><span class="n">legend</span><span class="p">(</span><span class="s2">"bottomright"</span><span class="p">,</span><span class="w"> </span><span class="n">inset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.1</span><span class="p">,</span><span class="w"> </span><span class="n">cex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.8</span><span class="p">,</span><span class="w">
+       </span><span class="n">legend</span><span class="o">=</span><span class="m">0</span><span class="o">:</span><span class="m">9</span><span class="p">,</span><span class="w"> </span><span class="n">fill</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col_pal</span><span class="p">(</span><span class="m">0</span><span class="o">:</span><span class="m">9</span><span class="p">),</span><span class="w">
+       </span><span class="n">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Counts'</span><span class="p">)</span><span class="w">
+</span><span class="n">plot</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">col_pal</span><span class="p">(</span><span class="n">nydata</span><span class="o">$</span><span class="n">CASES</span><span class="p">),</span><span class="w"> </span><span class="n">asp</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Observed'</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="../images/week-7/car_validation-2.png" alt="" /></p>
+
+<h3 id="references">References</h3>
+
+<h4 id="citation-for-the-leukemia-data">Citation for the leukemia data</h4>
+
+<p>Turnbull, B. W. et al (1990) Monitoring for clusters of disease:
+application to leukemia incidence in upstate New York American Journal
+of Epidemiology, 132, 136–143</p>
+
+<h4 id="key-reading">Key reading</h4>
+
+<p>Bivand R, Pebesma E, Gomez-Rubio V. (2013). Applied Spatial Data
+Analysis with R. Use R! Springer: New York (particularly chapter 9 on
+areal data)</p>
+
+<h4 id="other-resources">Other resources</h4>
+
+<p>S. Banerjee, B.P. Carlin and A.E. Gelfand (2003). Hierarchical Modeling
+and Analysis for Spatial Data. Chapman &amp; Hall.</p>
+
+<p>D.J. Spiegelhalter, N.G. Best, B.P. Carlin and A. Van der Linde (2002).
+Bayesian Measures of Model Complexity and Fit (with Discussion), Journal
+of the Royal Statistical Society, Series B 64(4), 583-616.</p>
+
+<p>L.A. Waller and C.A. Gotway (2004). Applied Spatial Statistics for
+Public Health Data. Wiley &amp; Sons.</p>
+
+  </div><a class="u-url" href="/lab-6/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p>This course has been developed over the years by many contributors including Hugh Sturrock, Adam Bennett, Francois Rerolle, Ricardo Andrade, Adam Readhead, David Connell, and Erika Foster. <a href="/about">Read about the team</a>.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer></body>
+
+</html>
