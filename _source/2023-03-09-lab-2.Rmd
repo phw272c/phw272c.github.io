@@ -17,6 +17,8 @@ knitr::opts_chunk$set(fig.path = "../images/week-3/")
 ```
 
 ```{r, message=FALSE, warning=FALSE}
+install.packages("geodata") 
+library(geodata) 
 library(Metrics)
 library(spatstat)
 library(raster)
@@ -53,7 +55,9 @@ CaseControl_SPDF <- SpatialPointsDataFrame(coords = CaseControl[,c("long", "lat"
 
 And get hold of a boundary file for Namibia.
 ```{r}
-NAM_Adm0<-raster::getData('GADM',country='NAM',level=0)
+#OLD NAM_Adm0<-raster::getData('GADM',country='NAM',level=0)
+#NEW
+NAM_Adm0<- as(elevation_30s("NAM", path=tempdir()), "Raster") 
 ```
 
 Let's plot and see what we have. First, create a color scheme based on the case classification (0 or 1).
