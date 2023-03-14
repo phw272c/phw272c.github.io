@@ -17,7 +17,6 @@ knitr::opts_chunk$set(fig.path = "../images/week-3/")
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-install.packages("geodata") 
 library(geodata) 
 library(Metrics)
 library(spatstat)

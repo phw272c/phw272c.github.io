@@ -37,7 +37,8 @@ point process data (i.e. occurrences of events in a given area). When
 you load this week’s libraries, it may prompt you to download
 <a href="https://www.xquartz.org/">XQuartz</a>.</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">Metrics</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">geodata</span><span class="p">)</span><span class="w"> 
+</span><span class="n">library</span><span class="p">(</span><span class="n">Metrics</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">spatstat</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="w">
@@ -84,12 +85,10 @@ case-control data</p>
 
 <p>And get hold of a boundary file for Namibia.</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s1">'GADM'</span><span class="p">,</span><span class="n">country</span><span class="o">=</span><span class="s1">'NAM'</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="m">0</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#OLD NAM_Adm0&lt;-raster::getData('GADM',country='NAM',level=0)</span><span class="w">
+</span><span class="c1">#NEW</span><span class="w">
+</span><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">elevation_30s</span><span class="p">(</span><span class="s2">"NAM"</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w"> 
 </span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "NAM", level = 0): getData will be removed in a future version of raster
-## . Please use the geodata package instead
-</code></pre></div></div>
 
 <p>Let’s plot and see what we have. First, create a color scheme based on
 the case classification (0 or 1).</p>
@@ -646,8 +645,8 @@ would look like this.</p>
 ## variofit: weights used: npairs 
 ## variofit: minimisation function used: optim
 
-## Warning in variofit(Vario_logit, cov.model = "sph"): initial values not provided
-## - running the default search
+## Warning in variofit(Vario_logit, cov.model = "sph"): initial values not
+## provided - running the default search
 
 ## variofit: searching for best initial value ... selected values:
 ##               sigmasq phi    tausq  kappa
