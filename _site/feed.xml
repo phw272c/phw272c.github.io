@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-13T17:04:03-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-14T15:23:39-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
 across space from point data. These may be point level data
 (i.e. measurements of something of interest at particular points) or
 point process data (i.e. occurrences of events in a given area). When
@@ -55,8 +55,14 @@ case-control data</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#OLD NAM_Adm0&lt;-raster::getData('GADM',country='NAM',level=0)</span><span class="w">
 </span><span class="c1">#NEW</span><span class="w">
-</span><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">elevation_30s</span><span class="p">(</span><span class="s2">"NAM"</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w"> 
+</span><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s2">"NAM"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">NAM_Adm0</span><span class="p">)</span><span class="w"> 
 </span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
+</code></pre></div></div>
 
 <p>Let’s plot and see what we have. First, create a color scheme based on
 the case classification (0 or 1).</p>
@@ -192,11 +198,15 @@ malaria prevalence data</p>
 <p>Get the Ethiopia Adm 1 level boundary file using the raster package
 which provides access to GADM data</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#OLD ETH_Adm_1 &lt;- raster::getData("GADM", country="ETH", level=1)</span><span class="w">
+</span><span class="c1">#NEW</span><span class="w">
+</span><span class="n">ETH_Adm_1</span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
 </code></pre></div></div>
 
 <h3 id="inverse-distance-weighting-idw">Inverse distance weighting (IDW)</h3>
