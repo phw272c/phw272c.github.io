@@ -56,7 +56,8 @@ And get hold of a boundary file for Namibia.
 ```{r}
 #OLD NAM_Adm0<-raster::getData('GADM',country='NAM',level=0)
 #NEW
-NAM_Adm0<- as(elevation_30s("NAM", path=tempdir()), "Raster") 
+NAM_Adm0<- as(gadm(country="NAM", level=0, path=tempdir()), "Spatial")
+class(NAM_Adm0) 
 ```
 
 Let's plot and see what we have. First, create a color scheme based on the case classification (0 or 1).
@@ -158,7 +159,10 @@ ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.
 
 Get the Ethiopia Adm 1 level boundary file using the raster package which provides access to GADM data
 ```{r}
-ETH_Adm_1 <- raster::getData("GADM", country="ETH", level=1)
+#OLD ETH_Adm_1 <- raster::getData("GADM", country="ETH", level=1)
+#NEW
+ETH_Adm_1<- as(gadm(country="ETH", level=1, path=tempdir()), "Spatial")
+class(ETH_Adm_1)
 ```
 
 ### Inverse distance weighting (IDW)
