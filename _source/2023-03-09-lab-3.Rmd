@@ -42,7 +42,9 @@ library(RColorBrewer)
 library(lattice)
 library(geoR)
 library(plotrix) 
-library(car)  # contains a function for logistic transformation (log odds) to make more normal
+library(car) # contains a function for logistic transformation (log odds) to make more normal
+library(geodata)
+
 ```
 
 These libraries are for spatial data management and point process analysis.
