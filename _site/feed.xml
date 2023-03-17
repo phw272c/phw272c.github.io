@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-14T15:23:39-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-17T13:16:49-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
 across space from point data. These may be point level data
 (i.e. measurements of something of interest at particular points) or
 point process data (i.e. occurrences of events in a given area). When
@@ -726,7 +726,8 @@ Namibia</li>
 </span><span class="n">library</span><span class="p">(</span><span class="n">lattice</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">geoR</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">plotrix</span><span class="p">)</span><span class="w"> 
-</span><span class="n">library</span><span class="p">(</span><span class="n">car</span><span class="p">)</span><span class="w">  </span><span class="c1"># contains a function for logistic transformation (log odds) to make more normal</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">car</span><span class="p">)</span><span class="w"> </span><span class="c1"># contains a function for logistic transformation (log odds) to make more normal</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">geodata</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p>These libraries are for spatial data management and point process
@@ -751,21 +752,20 @@ evidence of spatial clustering. What do you think?</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Open BF malaria data</span><span class="w">
 </span><span class="n">BF_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/BF_malaria_data.csv"</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
-</span><span class="n">BF_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"BFA"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD BF_Adm_1 &lt;- raster::getData("GADM", country="BFA", level=1)</span><span class="w">
+
+</span><span class="n">BF_Adm_1</span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s2">"BFA"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">BF_Adm_1</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "BFA", level = 1): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">proj4string</span><span class="p">(</span><span class="n">BF_Adm_1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">CRS</span><span class="p">(</span><span class="s1">'+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 '</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in proj4string(obj): CRS object has comment, which is lost in output; in tests, see
-## https://cran.r-project.org/web/packages/sp/vignettes/CRS_warnings.html
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Calculate prevalence</span><span class="w">
+</span><span class="c1"># Calculate prevalence</span><span class="w">
 </span><span class="n">BF_malaria_data</span><span class="o">$</span><span class="n">prevalence</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">BF_malaria_data</span><span class="o">$</span><span class="n">positives</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">BF_malaria_data</span><span class="o">$</span><span class="n">examined</span><span class="w">
 
 </span><span class="c1"># What do the data look like - do you see evidence of spatial clustering?</span><span class="w">
@@ -1118,10 +1118,11 @@ another along a boundary or boundary point.</p>
 ## Warning in st_is_longlat(pl): bounding box has potentially an invalid value
 ## range for longlat data
 
-## Warning in st_is_longlat(x): bounding box has potentially an invalid value range
-## for longlat data
+## Warning in st_is_longlat(x): bounding box has potentially an invalid value
+## range for longlat data
 
-## although coordinates are longitude/latitude, st_intersects assumes that they are planar
+## although coordinates are longitude/latitude, st_intersects assumes that they
+## are planar
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata_nbr</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">poly2nb</span><span class="p">(</span><span class="n">nydata</span><span class="p">,</span><span class="w"> </span><span class="n">queen</span><span class="o">=</span><span class="nb">F</span><span class="p">)</span><span class="w">  </span><span class="c1">#rook contiguity</span><span class="w">
@@ -1133,10 +1134,11 @@ another along a boundary or boundary point.</p>
 ## Warning in st_is_longlat(pl): bounding box has potentially an invalid value
 ## range for longlat data
 
-## Warning in st_is_longlat(x): bounding box has potentially an invalid value range
-## for longlat data
+## Warning in st_is_longlat(x): bounding box has potentially an invalid value
+## range for longlat data
 
-## although coordinates are longitude/latitude, st_intersects assumes that they are planar
+## although coordinates are longitude/latitude, st_intersects assumes that they
+## are planar
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#coordinates</span><span class="w">
@@ -1398,11 +1400,15 @@ Namibia.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CaseControl</span><span class="o">&lt;-</span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/CaseControl.csv"</span><span class="p">)</span><span class="w">
 
 </span><span class="c1">#  boundary file</span><span class="w">
-</span><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s1">'GADM'</span><span class="p">,</span><span class="n">country</span><span class="o">=</span><span class="s1">'NAM'</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="m">0</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD NAM_Adm0&lt;-raster::getData('GADM',country='NAM',level=0)</span><span class="w">
+
+</span><span class="n">NAM_Adm0</span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s2">"NAM"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">NAM_Adm0</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "NAM", level = 0): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
 </code></pre></div></div>
 
 <p>We can convert the data to a SPDF and plot the cases and ‘controls’</p>
