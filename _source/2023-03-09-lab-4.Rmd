@@ -31,13 +31,18 @@ Many spatial data have been made directly available within R thanks to packages 
 # Load packages
 library(raster)
 library(leaflet)
+library(geodata)
+library(terra)
 ```
 
 You have already used spatial data from the "raster" package via the getData function. Let's see what's in there!
 
 ```{r, eval = FALSE}
 # Read vignette for details and references
-?raster::getData()
+#OLD ?raster::getData()
+#NEW 
+
+?geodata-package
 ```
 
 So you can download administrative boundaries (option name = 'GADM'), elevation (name = 'alt') and even climate variables (name = 'worldclim').
@@ -45,9 +50,13 @@ So you can download administrative boundaries (option name = 'GADM'), elevation 
 ```{r}
 ## Ethiopia
 # Administrative boundaries (level 1)
-ETH_Adm_1 <- raster::getData(name = "GADM",
-                             country = "ETH",
-                             level = 1)
+#OLD ETH_Adm_1 <- raster::getData(name = "GADM",
+ #                            country = "ETH",
+ #                            level = 1)
+
+#NEW 
+ETH_Adm_1 <- as(gadm(country = "ETH", level=1, path=tempdir()), "Spatial")
+class(ETH_Adm0)
 
 leaflet() %>% # Plot
   addProviderTiles("CartoDB.Positron") %>%
@@ -56,8 +65,12 @@ leaflet() %>% # Plot
               label = ETH_Adm_1$NAME_1)
 
 # Elevation (meters)
-ETH_elev <- raster::getData(name = "alt",
-                            country = "ETH")
+#OLD ETH_elev <- raster::getData(name = "alt",
+ #                           country = "ETH")
+ 
+#NEW 
+ETH_elev <- as(elevation_30s("ETH", path=tempdir()), "Raster") 
+ETH_elev
 
 raster_colorPal_elev <- colorNumeric(palette = topo.colors(64),
                                      domain = values(ETH_elev),
@@ -78,7 +91,9 @@ leaflet() %>% # Plot
 Need to correctly specify 'country' option:
 
 ```{r, eval = FALSE}
-raster::getData('ISO3')
+#OLD raster::getData('ISO3')
+cc <- country_codes()
+cc
 ```
 
 Varying 'level' option gives you different administrative boundaries and disabling 'mask' option reveals elevation data comes from a larger surface that goes beyond the country's boundaries:
@@ -86,14 +101,22 @@ Varying 'level' option gives you different administrative boundaries and disabli
 ```{r}
 ## Ethiopia and South Sudan
 # Administrative boundaries (level 0)
-SSD_Adm_0 <- raster::getData(name = "GADM",
-                             country = "SSD",
-                             level = 0)
+#OLD SSD_Adm_0 <- raster::getData(name = "GADM",
+ #                            country = "SSD",
+ #                            level = 0)
+
+#NEW
+SSD_Adm_0 <- as(gadm(country = "SSD", level=0, path=tempdir()), "Spatial")
+class(SSD_Adm0)
 
 # Elevation (meters)
-ETH_elev_unmasked <- raster::getData(name = "alt",
-                                     country = "ETH",
-                                     mask = FALSE)
+#OLD ETH_elev_unmasked <- raster::getData(name = "alt",
+ #                                    country = "ETH",
+  #                                   mask = FALSE)
+#NEW
+ETH_elev_unmasked <- as(elevation_30s("ETH", path=tempdir(), mask=FALSE), "Raster")
+ETH_elev_unmasked
+
 
 raster_colorPal_elev_unmasked <- colorNumeric(palette = topo.colors(64),
                                               domain = values(ETH_elev_unmasked),
@@ -118,16 +141,24 @@ As you vary the 'name' option to access environmental variable, pay particular a
 
 ```{r}
 # Precipitation from worldclim at the 2.5, 5 or 10 resolution (minutes of a degree)... no need for location specification?!?!
-ETH_prec_10 <- raster::getData(name = "worldclim",
-                            var = "prec",
-                            res = 10)
+#OLD ETH_prec_10 <- raster::getData(name = "worldclim",
+ #                           var = "prec",
+  #                          res = 10)
+
+#NEW 
+ETH_prec_10 <- as(worldclim_global(var="prec", res=10, path=tempdir(), version="2.1"), "Raster")
 
 # Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for
-ETH_prec_0.5 <- raster::getData(name = "worldclim",
-                            var = "prec",
-                            res = 0.5,
-                            lon = 40,
-                            lat = 10)
+#OLD ETH_prec_0.5 <- raster::getData(name = "worldclim",
+                     #       var = "prec",
+                     #       res = 0.5,
+                     #       lon = 40,
+                      #      lat = 10)
+#NEW
+
+ETH_prec_0.5 <- as(worldclim_tile(var = "prec", res = 0.5, lon = 40.4897, lat = 9.1450, path=tempdir()), "Raster")
+ETH_prec_0.5
+
 ```
 
 _Pop quiz: why do you think that is?_
@@ -230,16 +261,22 @@ _In class assignement: map the 1 (minute of a degree) resolution January precipi
 
 ```{r, echo = FALSE, eval = FALSE}
 # Administrative boundaries (level 0)
-KEN_Adm_0 <- raster::getData(name = "GADM",
-                             country = "KEN",
-                             level = 0)
+#OLD KEN_Adm_0 <- raster::getData(name = "GADM",
+  #                           country = "KEN",
+  #                           level = 0)
+
+#NEW
+KEN_Adm_0 <- as(gadm(country="KEN", level=0, path=tempdir()), "Spatial")
+class(KEN_Adm0)
 
 # Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... South half of Kenya
-KEN_prec_0.5_south <- raster::getData(name = "worldclim",
-                                      var = "prec",
-                                      res = 0.5,
-                                      lon = 40,
-                                      lat = -5)
+# KEN_prec_0.5_south <- raster::getData(name = "worldclim",
+                          #            var = "prec",
+                          #            res = 0.5,
+                            #          lon = 40,
+                           #           lat = -5)
+#NEW
+KEN_prec_0.5_south <- as(worldclim_tile(var = "prec", prec = 0.5, lon = 40, lat = -5, path=tempdir()), "Raster")
 
 # Restrict to January
 KEN_prec_0.5_Jan_south <- KEN_prec_0.5_south[[1]]
