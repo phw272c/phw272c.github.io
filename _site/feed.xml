@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-17T13:16:49-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-03-24T11:31:34-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
 across space from point data. These may be point level data
 (i.e. measurements of something of interest at particular points) or
 point process data (i.e. occurrences of events in a given area). When
@@ -1664,13 +1664,18 @@ packages but for some data, you might need to look online.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Load packages</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">leaflet</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">geodata</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">terra</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
 <p>You have already used spatial data from the “raster” package via the
 getData function. Let’s see what’s in there!</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Read vignette for details and references</span><span class="w">
-</span><span class="o">?</span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">()</span><span class="w">
+</span><span class="c1">#OLD ?raster::getData()</span><span class="w">
+</span><span class="c1">#NEW </span><span class="w">
+
+</span><span class="o">?</span><span class="n">geodata</span><span class="o">-</span><span class="n">package</span><span class="w">
 </span></code></pre></div></div>
 
 <p>So you can download administrative boundaries (option name = ‘GADM’),
@@ -1679,13 +1684,18 @@ elevation (name = ‘alt’) and even climate variables (name =
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## Ethiopia</span><span class="w">
 </span><span class="c1"># Administrative boundaries (level 1)</span><span class="w">
-</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"GADM"</span><span class="p">,</span><span class="w">
-                             </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
-                             </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD ETH_Adm_1 &lt;- raster::getData(name = "GADM",</span><span class="w">
+ </span><span class="c1">#                            country = "ETH",</span><span class="w">
+ </span><span class="c1">#                            level = 1)</span><span class="w">
+
+</span><span class="c1">#NEW </span><span class="w">
+</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
@@ -1698,12 +1708,22 @@ elevation (name = ‘alt’) and even climate variables (name =
 <p><img src="../images/week-5/unnamed-chunk-4-1.png" alt="" /></p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Elevation (meters)</span><span class="w">
-</span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"alt"</span><span class="p">,</span><span class="w">
-                            </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD ETH_elev &lt;- raster::getData(name = "alt",</span><span class="w">
+ </span><span class="c1">#                           country = "ETH")</span><span class="w">
+ 
+</span><span class="c1">#NEW </span><span class="w">
+</span><span class="n">ETH_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">elevation_30s</span><span class="p">(</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w"> 
+</span><span class="n">ETH_elev</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "alt", country = "ETH"): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1428, 1836, 2621808  (nrow, ncol, ncell)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 32.8, 48.1, 3.2, 15.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : ETH_elv_msk.tif 
+## names      : ETH_elv_msk 
+## values     : -202, 4459  (min, max)
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster_colorPal_elev</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w">
@@ -1727,7 +1747,9 @@ elevation (name = ‘alt’) and even climate variables (name =
 
 <p>Need to correctly specify ‘country’ option:</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s1">'ISO3'</span><span class="p">)</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#OLD raster::getData('ISO3')</span><span class="w">
+</span><span class="n">cc</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">country_codes</span><span class="p">()</span><span class="w">
+</span><span class="n">cc</span><span class="w">
 </span></code></pre></div></div>
 
 <p>Varying ‘level’ option gives you different administrative boundaries and
@@ -1736,23 +1758,37 @@ surface that goes beyond the country’s boundaries:</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">## Ethiopia and South Sudan</span><span class="w">
 </span><span class="c1"># Administrative boundaries (level 0)</span><span class="w">
-</span><span class="n">SSD_Adm_0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"GADM"</span><span class="p">,</span><span class="w">
-                             </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"SSD"</span><span class="p">,</span><span class="w">
-                             </span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD SSD_Adm_0 &lt;- raster::getData(name = "GADM",</span><span class="w">
+ </span><span class="c1">#                            country = "SSD",</span><span class="w">
+ </span><span class="c1">#                            level = 0)</span><span class="w">
+
+</span><span class="c1">#NEW</span><span class="w">
+</span><span class="n">SSD_Adm_0</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"SSD"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">SSD_Adm_0</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "GADM", country = "SSD", level = 0): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Elevation (meters)</span><span class="w">
-</span><span class="n">ETH_elev_unmasked</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"alt"</span><span class="p">,</span><span class="w">
-                                     </span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
-                                     </span><span class="n">mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD ETH_elev_unmasked &lt;- raster::getData(name = "alt",</span><span class="w">
+ </span><span class="c1">#                                    country = "ETH",</span><span class="w">
+  </span><span class="c1">#                                   mask = FALSE)</span><span class="w">
+</span><span class="c1">#NEW</span><span class="w">
+</span><span class="n">ETH_elev_unmasked</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">elevation_30s</span><span class="p">(</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">(),</span><span class="w"> </span><span class="n">mask</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w">
+</span><span class="n">ETH_elev_unmasked</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "alt", country = "ETH", mask = FALSE): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
+## dimensions : 1428, 1836, 2621808  (nrow, ncol, ncell)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 32.8, 48.1, 3.2, 15.1  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : ETH_elv.tif 
+## names      : ETH_elv 
+## values     : -202, 4459  (min, max)
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">raster_colorPal_elev_unmasked</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">colorNumeric</span><span class="p">(</span><span class="n">palette</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">topo.colors</span><span class="p">(</span><span class="m">64</span><span class="p">),</span><span class="w">
@@ -1782,25 +1818,34 @@ specification but at the 0.5 resolution, need to provide ‘lon’ and ‘lat’
 arguments…</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 2.5, 5 or 10 resolution (minutes of a degree)... no need for location specification?!?!</span><span class="w">
-</span><span class="n">ETH_prec_10</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"worldclim"</span><span class="p">,</span><span class="w">
-                            </span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w">
-                            </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
+</span><span class="c1">#OLD ETH_prec_10 &lt;- raster::getData(name = "worldclim",</span><span class="w">
+ </span><span class="c1">#                           var = "prec",</span><span class="w">
+  </span><span class="c1">#                          res = 10)</span><span class="w">
+
+</span><span class="c1">#NEW </span><span class="w">
+</span><span class="n">ETH_prec_10</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">worldclim_global</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="s2">"prec"</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="o">=</span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">(),</span><span class="w"> </span><span class="n">version</span><span class="o">=</span><span class="s2">"2.1"</span><span class="p">),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for</span><span class="w">
+</span><span class="c1">#OLD ETH_prec_0.5 &lt;- raster::getData(name = "worldclim",</span><span class="w">
+                     </span><span class="c1">#       var = "prec",</span><span class="w">
+                     </span><span class="c1">#       res = 0.5,</span><span class="w">
+                     </span><span class="c1">#       lon = 40,</span><span class="w">
+                      </span><span class="c1">#      lat = 10)</span><span class="w">
+</span><span class="c1">#NEW</span><span class="w">
+
+</span><span class="n">ETH_prec_0.5</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">worldclim_tile</span><span class="p">(</span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">40.4897</span><span class="p">,</span><span class="w"> </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">9.1450</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w">
+</span><span class="n">ETH_prec_0.5</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "worldclim", var = "prec", res = 10): getData will be removed in a future version of raster
-## . Please use the geodata package instead
-</code></pre></div></div>
-
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for</span><span class="w">
-</span><span class="n">ETH_prec_0.5</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"worldclim"</span><span class="p">,</span><span class="w">
-                            </span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w">
-                            </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w">
-                            </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">40</span><span class="p">,</span><span class="w">
-                            </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
-</span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData(name = "worldclim", var = "prec", res = 0.5, : getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterBrick 
+## dimensions : 3600, 3600, 12960000, 12  (nrow, ncol, ncell, nlayers)
+## resolution : 0.008333333, 0.008333333  (x, y)
+## extent     : 30, 60, 0, 30  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## source     : tile_32_wc2.1_30s_prec.tif 
+## names      : tile_32_wc2.1_30s_prec_1, tile_32_wc2.1_30s_prec_2, tile_32_wc2.1_30s_prec_3, tile_32_wc2.1_30s_prec_4, tile_32_wc2.1_30s_prec_5, tile_32_wc2.1_30s_prec_6, tile_32_wc2.1_30s_prec_7, tile_32_wc2.1_30s_prec_8, tile_32_wc2.1_30s_prec_9, tile_32_wc2.1_30s_prec_10, tile_32_wc2.1_30s_prec_11, tile_32_wc2.1_30s_prec_12 
+## min values :                        0,                        0,                        0,                        0,                        0,                        0,                        0,                        0,                        0,                         0,                         0,                         0 
+## max values :                      122,                      131,                      239,                      707,                      303,                      344,                      471,                      441,                      315,                       471,                       577,                       185
 </code></pre></div></div>
 
 <p><em>Pop quiz: why do you think that is?</em></p>
@@ -1810,26 +1855,27 @@ arguments…</p>
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterStack 
-## dimensions : 900, 2160, 1944000, 12  (nrow, ncol, ncell, nlayers)
+## dimensions : 1080, 2160, 2332800, 12  (nrow, ncol, ncell, nlayers)
 ## resolution : 0.1666667, 0.1666667  (x, y)
-## extent     : -180, 180, -60, 90  (xmin, xmax, ymin, ymax)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
 ## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## names      : prec1, prec2, prec3, prec4, prec5, prec6, prec7, prec8, prec9, prec10, prec11, prec12 
-## min values :     0,     0,     0,     0,     0,     0,     0,     0,     0,      0,      0,      0 
-## max values :   885,   736,   719,   820,   955,  1850,  2088,  1386,   904,    980,    893,    914
+## names      : wc2.1_10m_prec_01, wc2.1_10m_prec_02, wc2.1_10m_prec_03, wc2.1_10m_prec_04, wc2.1_10m_prec_05, wc2.1_10m_prec_06, wc2.1_10m_prec_07, wc2.1_10m_prec_08, wc2.1_10m_prec_09, wc2.1_10m_prec_10, wc2.1_10m_prec_11, wc2.1_10m_prec_12 
+## min values :                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0 
+## max values :               908,               793,               720,              1004,              2068,              2210,              2381,              1674,              1955,              2328,               718,               806
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ETH_prec_0.5</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterStack 
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterBrick 
 ## dimensions : 3600, 3600, 12960000, 12  (nrow, ncol, ncell, nlayers)
 ## resolution : 0.008333333, 0.008333333  (x, y)
-## extent     : 30, 60, -3.332445e-12, 30  (xmin, xmax, ymin, ymax)
+## extent     : 30, 60, 0, 30  (xmin, xmax, ymin, ymax)
 ## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## names      : prec1_27, prec2_27, prec3_27, prec4_27, prec5_27, prec6_27, prec7_27, prec8_27, prec9_27, prec10_27, prec11_27, prec12_27 
-## min values :        0,        0,        0,        0,        0,        0,        0,        0,        0,         0,         0,         0 
-## max values :      126,      137,      240,      697,      289,      360,      458,      457,      340,       450,       584,       184
+## source     : tile_32_wc2.1_30s_prec.tif 
+## names      : tile_32_wc2.1_30s_prec_1, tile_32_wc2.1_30s_prec_2, tile_32_wc2.1_30s_prec_3, tile_32_wc2.1_30s_prec_4, tile_32_wc2.1_30s_prec_5, tile_32_wc2.1_30s_prec_6, tile_32_wc2.1_30s_prec_7, tile_32_wc2.1_30s_prec_8, tile_32_wc2.1_30s_prec_9, tile_32_wc2.1_30s_prec_10, tile_32_wc2.1_30s_prec_11, tile_32_wc2.1_30s_prec_12 
+## min values :                        0,                        0,                        0,                        0,                        0,                        0,                        0,                        0,                        0,                         0,                         0,                         0 
+## max values :                      122,                      131,                      239,                      707,                      303,                      344,                      471,                      441,                      315,                       471,                       577,                       185
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Restrict to October and plot</span><span class="w">
@@ -2011,13 +2057,13 @@ reads in <em>.tif</em> files.</p>
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
-## dimensions : 900, 2160, 1944000  (nrow, ncol, ncell)
+## dimensions : 1080, 2160, 2332800  (nrow, ncol, ncell)
 ## resolution : 0.1666667, 0.1666667  (x, y)
-## extent     : -180, 180, -60, 90  (xmin, xmax, ymin, ymax)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
 ## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : prec10.bil 
-## names      : prec10 
-## values     : 0, 980  (min, max)
+## source     : wc2.1_10m_prec_10.tif 
+## names      : wc2.1_10m_prec_10 
+## values     : 0, 2328  (min, max)
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
@@ -2389,15 +2435,15 @@ a classification model using the “randomForest” package.</p>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 2
 ## 
-##         OOB estimate of  error rate: 23.2%
+##         OOB estimate of  error rate: 23%
 ## Confusion matrix:
 ##           Savanna Grassland Wetland Cropland Urban Water class.error
 ## Savanna         0         1       2        1     0     0  1.00000000
-## Grassland       1       380       8       91     0     1  0.20997921
-## Wetland         1        10      12        0     0     4  0.55555556
-## Cropland        0       103       1      224     0     0  0.31707317
+## Grassland       1       382       8       89     0     1  0.20582121
+## Wetland         1         9      12        1     0     4  0.55555556
+## Cropland        0       106       0      222     0     0  0.32317073
 ## Urban           0         2       0        2     0     0  1.00000000
-## Water           0         0       4        0     0   152  0.02564103
+## Water           0         0       2        0     0   154  0.01282051
 </code></pre></div></div>
 
 <p>By inspecting the output of the model, we realize it is not doing a
@@ -2414,7 +2460,8 @@ predict land cover over our entire region.</p>
                                   </span><span class="n">overwrite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w"> 
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   |                                                                              |                                                                      |   0%
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##   |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%
+## 
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">RColorBrewer</span><span class="p">)</span><span class="w">

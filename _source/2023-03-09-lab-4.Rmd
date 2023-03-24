@@ -56,7 +56,7 @@ So you can download administrative boundaries (option name = 'GADM'), elevation 
 
 #NEW 
 ETH_Adm_1 <- as(gadm(country = "ETH", level=1, path=tempdir()), "Spatial")
-class(ETH_Adm0)
+class(ETH_Adm_1)
 
 leaflet() %>% # Plot
   addProviderTiles("CartoDB.Positron") %>%
@@ -107,7 +107,7 @@ Varying 'level' option gives you different administrative boundaries and disabli
 
 #NEW
 SSD_Adm_0 <- as(gadm(country = "SSD", level=0, path=tempdir()), "Spatial")
-class(SSD_Adm0)
+class(SSD_Adm_0)
 
 # Elevation (meters)
 #OLD ETH_elev_unmasked <- raster::getData(name = "alt",
