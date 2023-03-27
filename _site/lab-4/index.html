@@ -66,7 +66,7 @@ getData function. Let’s see what’s in there!</p>
 </span><span class="c1">#OLD ?raster::getData()</span><span class="w">
 </span><span class="c1">#NEW </span><span class="w">
 
-</span><span class="o">?</span><span class="n">geodata</span><span class="o">-</span><span class="n">package</span><span class="w">
+</span><span class="o">?</span><span class="n">geodata</span><span class="w">
 </span></code></pre></div></div>
 
 <p>So you can download administrative boundaries (option name = ‘GADM’),
@@ -215,8 +215,20 @@ arguments…</p>
 
 </span><span class="c1">#NEW </span><span class="w">
 </span><span class="n">ETH_prec_10</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">worldclim_global</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="s2">"prec"</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="o">=</span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">(),</span><span class="w"> </span><span class="n">version</span><span class="o">=</span><span class="s2">"2.1"</span><span class="p">),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w">
+</span><span class="n">ETH_prec_10</span><span class="w">
+</span></code></pre></div></div>
 
-</span><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for</span><span class="w">
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterStack 
+## dimensions : 1080, 2160, 2332800, 12  (nrow, ncol, ncell, nlayers)
+## resolution : 0.1666667, 0.1666667  (x, y)
+## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+## crs        : +proj=longlat +datum=WGS84 +no_defs 
+## names      : wc2.1_10m_prec_01, wc2.1_10m_prec_02, wc2.1_10m_prec_03, wc2.1_10m_prec_04, wc2.1_10m_prec_05, wc2.1_10m_prec_06, wc2.1_10m_prec_07, wc2.1_10m_prec_08, wc2.1_10m_prec_09, wc2.1_10m_prec_10, wc2.1_10m_prec_11, wc2.1_10m_prec_12 
+## min values :                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0,                 0 
+## max values :               908,               793,               720,              1004,              2068,              2210,              2381,              1674,              1955,              2328,               718,               806
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for</span><span class="w">
 </span><span class="c1">#OLD ETH_prec_0.5 &lt;- raster::getData(name = "worldclim",</span><span class="w">
                      </span><span class="c1">#       var = "prec",</span><span class="w">
                      </span><span class="c1">#       res = 0.5,</span><span class="w">
@@ -270,7 +282,7 @@ arguments…</p>
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Restrict to October and plot</span><span class="w">
-</span><span class="n">ETH_prec_10_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_prec_10</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
+</span><span class="n">ETH_prec_10_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">crop</span><span class="p">(</span><span class="n">ETH_prec_10</span><span class="p">[[</span><span class="m">10</span><span class="p">]],</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">60</span><span class="p">,</span><span class="m">-10</span><span class="p">,</span><span class="m">20</span><span class="p">))</span><span class="w"> </span><span class="c1"># xmin, xmax, ymin, ymax</span><span class="w">
 </span><span class="n">ETH_prec_0.5_Oct</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ETH_prec_0.5</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
 
 
@@ -323,11 +335,16 @@ arguments…</p>
 for South Sudan?</em></p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... Left half of South Sudan</span><span class="w">
-</span><span class="n">SSD_prec_0.5_left</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"worldclim"</span><span class="p">,</span><span class="w">
-                                     </span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w">
-                                     </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w">
-                                     </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">,</span><span class="w">
-                                     </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
+</span><span class="c1"># SSD_prec_0.5_left &lt;- raster::getData(name = "worldclim",</span><span class="w">
+</span><span class="c1">#                                      var = "prec",</span><span class="w">
+</span><span class="c1">#                                      res = 0.5,</span><span class="w">
+</span><span class="c1">#                                      lon = 20,</span><span class="w">
+</span><span class="c1">#                                      lat = 10)</span><span class="w">
+
+
+
+</span><span class="n">SSD_prec_0.5_left</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">worldclim_tile</span><span class="p">(</span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"prec"</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">20</span><span class="p">,</span><span class="w"> </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w">
+
 
 </span><span class="c1"># Restrict to October</span><span class="w">
 </span><span class="n">SSD_prec_0.5_Oct_left</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">SSD_prec_0.5_left</span><span class="p">[[</span><span class="m">10</span><span class="p">]]</span><span class="w">
@@ -448,13 +465,13 @@ reads in <em>.tif</em> files.</p>
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## class      : RasterLayer 
-## dimensions : 1080, 2160, 2332800  (nrow, ncol, ncell)
+## dimensions : 180, 360, 64800  (nrow, ncol, ncell)
 ## resolution : 0.1666667, 0.1666667  (x, y)
-## extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
+## extent     : 0, 60, -10, 20  (xmin, xmax, ymin, ymax)
 ## crs        : +proj=longlat +datum=WGS84 +no_defs 
-## source     : wc2.1_10m_prec_10.tif 
+## source     : memory
 ## names      : wc2.1_10m_prec_10 
-## values     : 0, 2328  (min, max)
+## values     : 0, 596  (min, max)
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">leaflet</span><span class="p">()</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="c1"># Plot</span><span class="w">
@@ -829,12 +846,12 @@ a classification model using the “randomForest” package.</p>
 ##         OOB estimate of  error rate: 23%
 ## Confusion matrix:
 ##           Savanna Grassland Wetland Cropland Urban Water class.error
-## Savanna         0         1       2        1     0     0  1.00000000
-## Grassland       1       382       8       89     0     1  0.20582121
-## Wetland         1         9      12        1     0     4  0.55555556
-## Cropland        0       106       0      222     0     0  0.32317073
+## Savanna         0         2       2        0     0     0  1.00000000
+## Grassland       1       383       7       89     0     1  0.20374220
+## Wetland         1        10      12        0     0     4  0.55555556
+## Cropland        0       105       1      222     0     0  0.32317073
 ## Urban           0         2       0        2     0     0  1.00000000
-## Water           0         0       2        0     0   154  0.01282051
+## Water           0         1       2        0     0   153  0.01923077
 </code></pre></div></div>
 
 <p>By inspecting the output of the model, we realize it is not doing a

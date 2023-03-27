@@ -42,7 +42,7 @@ You have already used spatial data from the "raster" package via the getData fun
 #OLD ?raster::getData()
 #NEW 
 
-?geodata-package
+?geodata
 ```
 
 So you can download administrative boundaries (option name = 'GADM'), elevation (name = 'alt') and even climate variables (name = 'worldclim').
@@ -147,6 +147,7 @@ As you vary the 'name' option to access environmental variable, pay particular a
 
 #NEW 
 ETH_prec_10 <- as(worldclim_global(var="prec", res=10, path=tempdir(), version="2.1"), "Raster")
+ETH_prec_10
 
 # Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... need to specifiy 'lon' and 'lat' of the tile looked for
 #OLD ETH_prec_0.5 <- raster::getData(name = "worldclim",
@@ -169,7 +170,7 @@ ETH_prec_10
 ETH_prec_0.5
 
 # Restrict to October and plot
-ETH_prec_10_Oct <- ETH_prec_10[[10]]
+ETH_prec_10_Oct <- crop(ETH_prec_10[[10]], c(0,60,-10,20)) # xmin, xmax, ymin, ymax
 ETH_prec_0.5_Oct <- ETH_prec_0.5[[10]]
 
 
@@ -217,11 +218,16 @@ _Pop quiz: how would you get the 0.5 resolution October precipitation for South 
 
 ```{r, message = FALSE, warning = FALSE}
 # Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... Left half of South Sudan
-SSD_prec_0.5_left <- raster::getData(name = "worldclim",
-                                     var = "prec",
-                                     res = 0.5,
-                                     lon = 20,
-                                     lat = 10)
+# SSD_prec_0.5_left <- raster::getData(name = "worldclim",
+#                                      var = "prec",
+#                                      res = 0.5,
+#                                      lon = 20,
+#                                      lat = 10)
+
+
+
+SSD_prec_0.5_left <- as(worldclim_tile(var = "prec", res = 0.5, lon = 20, lat = 10, path=tempdir()), "Raster")
+
 
 # Restrict to October
 SSD_prec_0.5_Oct_left <- SSD_prec_0.5_left[[10]]
@@ -267,7 +273,7 @@ _In class assignement: map the 1 (minute of a degree) resolution January precipi
 
 #NEW
 KEN_Adm_0 <- as(gadm(country="KEN", level=0, path=tempdir()), "Spatial")
-class(KEN_Adm0)
+class(KEN_Adm_0)
 
 # Precipitation from worldclim at the 0.5 resolution (minutes of a degree)... South half of Kenya
 # KEN_prec_0.5_south <- raster::getData(name = "worldclim",
