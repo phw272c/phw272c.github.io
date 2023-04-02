@@ -31,6 +31,7 @@ library(fields)
 library(raster)
 library(sp)
 library(spaMM)
+library(geodata)
 source("https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week6/Lab_files/R%20Files/background_functions.R")
 ```
 
@@ -355,7 +356,11 @@ This survey data contains information about number of positive cases and number 
 ```{r ETH_malaria_data_data}
 # Load data
 ETH_malaria_data <- read.csv("https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv", header=T) # Case data
-ETH_Adm_1 <- raster::getData("GADM", country="ETH", level=1) # Admin boundaries
+#OLD ETH_Adm_1 <- raster::getData("GADM", country="ETH", level=1) # Admin boundaries
+#NEW
+ETH_Adm_1 <- as(gadm(country = "ETH", level=1, path=tempdir()), "Spatial")
+class(ETH_Adm_1)
+
 Oromia <- subset(ETH_Adm_1, NAME_1=="Oromia")
 # Plot both country and data points
 raster::plot(Oromia)
@@ -363,10 +368,14 @@ points(ETH_malaria_data$longitude, ETH_malaria_data$latitude,
        pch = 16, ylab = "Latitude", xlab="Longitude", col="red", cex=.5)
 ```
 
-To model and predict malaria prevalence across Oromia State, we need to first obtain predictors as rasters at a common resolution/extent. In this example, we are going to use two of the [Bioclim](https://www.worldclim.org/bioclim) layers, accessible using the `getData` function in the raster package. 
+To model and predict malaria prevalence across Oromia State, we need to first obtain predictors as rasters at a common resolution/extent. In this example, we are going to use two of the [Bioclim](https://www.worldclim.org/bioclim) layers, accessible using the geodata package. 
 
 ```{r}
-bioclim_layers <- getData('worldclim', var='bio', res=0.5, lon=38.7578, lat=8.9806) # lng/lat for Addis Ababa
+#OLD bioclim_layers <- getData('worldclim', var='bio', res=0.5, lon=38.7578, lat=8.9806) # lng/lat for Addis Ababa
+#NEW
+
+bioclim_layers <- as(worldclim_tile(var = "bio", res = 0.5, lon = 38.7578, lat = 8.9806, path=tempdir()), "Raster") # lng/lat for Addis Ababa
+
 ```
 We can crop these layers to make them a little easier to handle
 ```{r}
