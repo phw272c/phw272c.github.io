@@ -108,6 +108,28 @@ images displayed.</p>
 ##     Matern
 </code></pre></div></div>
 
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">geodata</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Loading required package: terra
+
+## terra 1.7.18
+
+## 
+## Attaching package: 'terra'
+
+## The following object is masked from 'package:fields':
+## 
+##     describe
+
+## 
+## Attaching package: 'geodata'
+
+## The following object is masked from 'package:fields':
+## 
+##     world
+</code></pre></div></div>
+
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">source</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/HughSt/HughSt.github.io/master/course_materials/week6/Lab_files/R%20Files/background_functions.R"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
@@ -474,8 +496,13 @@ data into \(k\) subsets. Then we train the model \(k\) times, each one
 using only 4 of the groups, and computing some performance metric on the
 left out group. The performance metric could be the sum of squared
 errors or any other sensible metric depending on the application. Below
-we show a diagram of a 5-fold cross validation.
-<img src="../images/week-6/k_fold_cv-1.png" alt="" /></p>
+we show a diagram of a 5-fold cross validation.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+</code></pre></div></div>
+
+<p><img src="../images/week-6/k_fold_cv-1.png" alt="" /></p>
 
 <h3 id="glm-surface-trend-vs-geostatistic-model">GLM Surface Trend vs Geostatistic Model</h3>
 
@@ -547,11 +574,15 @@ of successes out of a number of trials.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Load data</span><span class="w">
 </span><span class="n">ETH_malaria_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/phw272c/phw272c.github.io/master/data/mal_data_eth_2009_no_dups.csv"</span><span class="p">,</span><span class="w"> </span><span class="n">header</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w"> </span><span class="c1"># Case data</span><span class="w">
-</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">raster</span><span class="o">::</span><span class="n">getData</span><span class="p">(</span><span class="s2">"GADM"</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="o">=</span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="c1"># Admin boundaries</span><span class="w">
+</span><span class="c1">#OLD ETH_Adm_1 &lt;- raster::getData("GADM", country="ETH", level=1) # Admin boundaries</span><span class="w">
+</span><span class="c1">#NEW</span><span class="w">
+</span><span class="n">ETH_Adm_1</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">gadm</span><span class="p">(</span><span class="n">country</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w"> </span><span class="n">level</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Spatial"</span><span class="p">)</span><span class="w">
+</span><span class="nf">class</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in raster::getData("GADM", country = "ETH", level = 1): getData will be removed in a future version of raster
-## . Please use the geodata package instead
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "SpatialPolygonsDataFrame"
+## attr(,"package")
+## [1] "sp"
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Oromia</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">subset</span><span class="p">(</span><span class="n">ETH_Adm_1</span><span class="p">,</span><span class="w"> </span><span class="n">NAME_1</span><span class="o">==</span><span class="s2">"Oromia"</span><span class="p">)</span><span class="w">
@@ -567,14 +598,13 @@ of successes out of a number of trials.</p>
 first obtain predictors as rasters at a common resolution/extent. In
 this example, we are going to use two of the
 <a href="https://www.worldclim.org/bioclim">Bioclim</a> layers, accessible using
-the <code class="language-plaintext highlighter-rouge">getData</code> function in the raster package.</p>
+the geodata package.</p>
 
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bioclim_layers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">getData</span><span class="p">(</span><span class="s1">'worldclim'</span><span class="p">,</span><span class="w"> </span><span class="n">var</span><span class="o">=</span><span class="s1">'bio'</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="o">=</span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">lon</span><span class="o">=</span><span class="m">38.7578</span><span class="p">,</span><span class="w"> </span><span class="n">lat</span><span class="o">=</span><span class="m">8.9806</span><span class="p">)</span><span class="w"> </span><span class="c1"># lng/lat for Addis Ababa</span><span class="w">
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#OLD bioclim_layers &lt;- getData('worldclim', var='bio', res=0.5, lon=38.7578, lat=8.9806) # lng/lat for Addis Ababa</span><span class="w">
+</span><span class="c1">#NEW</span><span class="w">
+
+</span><span class="n">bioclim_layers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as</span><span class="p">(</span><span class="n">worldclim_tile</span><span class="p">(</span><span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"bio"</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">38.7578</span><span class="p">,</span><span class="w"> </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">8.9806</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="o">=</span><span class="n">tempdir</span><span class="p">()),</span><span class="w"> </span><span class="s2">"Raster"</span><span class="p">)</span><span class="w"> </span><span class="c1"># lng/lat for Addis Ababa</span><span class="w">
 </span></code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning in getData("worldclim", var = "bio", res = 0.5, lon = 38.7578, lat = 8.9806): getData will be removed in a future version of raster
-## . Please use the geodata package instead
-</code></pre></div></div>
 
 <p>We can crop these layers to make them a little easier to handle</p>
 
@@ -602,13 +632,13 @@ precipitation) at the observation points</p>
 ## Estimation of fixed effects by ML.
 ## family: binomial( link = logit ) 
 ##  ------------ Fixed effects (beta) ------------
-##               Estimate  Cond. SE t-value
-## (Intercept) -8.3846190 1.6273198  -5.152
-## bioclim1     0.0113079 0.0071619   1.579
-## bioclim12    0.0003218 0.0002892   1.113
+##             Estimate Cond. SE t-value
+## (Intercept) -17.6362  1.72185 -10.243
+## bioclim1      0.2119  0.05994   3.535
+## bioclim12     0.5422  0.08743   6.202
 ##  ------------- Likelihood values  -------------
-##                        logLik
-## logL               : -225.369
+##                         logLik
+## logL               : -204.0366
 </code></pre></div></div>
 
 <p>And take a look at spatial autocorrelation in the residuals</p>
@@ -624,16 +654,16 @@ precipitation) at the observation points</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Moran I statistic 
 ##       dist.class         coef      p.value    n
-##  [1,]  0.3979675  0.212998345 5.839497e-18 3904
-##  [2,]  1.1937029  0.028869826 3.706873e-02 5192
-##  [3,]  1.9894379 -0.080946573 9.999812e-01 5680
-##  [4,]  2.7851728  0.005202035 3.088693e-01 4976
-##  [5,]  3.5809077 -0.082287239 9.999446e-01 5078
-##  [6,]  4.3766427 -0.073913147 9.999694e-01 5896
-##  [7,]  5.1723776 -0.028848437 8.762919e-01 4890
-##  [8,]  5.9681126  0.010132650 2.753585e-01 3694
-##  [9,]  6.7638475 -0.004350064 4.290928e-01 1412
-## [10,]  7.5595825 -0.015829056 4.321541e-01  284
+##  [1,]  0.3979675  0.199980480 8.240172e-16 3904
+##  [2,]  1.1937029  0.014247182 1.577427e-01 5192
+##  [3,]  1.9894379 -0.042814027 9.790294e-01 5680
+##  [4,]  2.7851728  0.062142108 5.417610e-04 4976
+##  [5,]  3.5809077 -0.056543628 9.946848e-01 5078
+##  [6,]  4.3766427 -0.059764427 9.991960e-01 5896
+##  [7,]  5.1723776 -0.028973619 8.756756e-01 4890
+##  [8,]  5.9681126  0.001175213 3.946801e-01 3694
+##  [9,]  6.7638475 -0.031256195 7.395092e-01 1412
+## [10,]  7.5595825 -0.035348306 5.503216e-01  284
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot correlogram</span><span class="w">
@@ -666,22 +696,22 @@ spatial model.</p>
 ## Estimation of lambda by 'outer' ML, maximizing logL.
 ## family: binomial( link = logit ) 
 ##  ------------ Fixed effects (beta) ------------
-##               Estimate Cond. SE t-value
-## (Intercept) -14.045555 6.035854 -2.3270
-## bioclim1      0.029817 0.024988  1.1932
-## bioclim12    -0.000203 0.001364 -0.1489
+##             Estimate Cond. SE t-value
+## (Intercept) -19.0181   6.8474 -2.7774
+## bioclim1      0.3693   0.2179  1.6945
+## bioclim12     0.2473   0.3450  0.7169
 ##  --------------- Random effects ---------------
 ## Family: gaussian( link = identity ) 
 ##                    --- Correlation parameters:
-##     1.nu    1.rho 
-## 0.439513 1.659388 
+##      1.nu     1.rho 
+## 0.4388976 1.7275925 
 ##            --- Variance parameters ('lambda'):
 ## lambda = var(u) for u ~ Gaussian; 
-##    latitude .  :  4.695  
+##    latitude .  :  4.383  
 ## # of obs: 203; # of groups: latitude ., 203 
 ##  ------------- Likelihood values  -------------
 ##                         logLik
-## logL       (p_v(h)): -106.4314
+## logL       (p_v(h)): -105.8655
 </code></pre></div></div>
 
 <p>We can generate a quick scatter plot of observed vs fitted values</p>
@@ -765,6 +795,9 @@ below.</p>
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
 
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Iterative algorithm converges slowly. See help('convergence') for suggestions.
+</code></pre></div></div>
+
 <p>Here is a summary of the results. The covariates are indexed as: 1 -
 bioclim1, 2 - bioclim12.</p>
 
@@ -772,8 +805,8 @@ bioclim1, 2 - bioclim12.</p>
 </span></code></pre></div></div>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##        MSE Covariates
-## 1 1.462020        1,2
-## 2 1.467664          1
+## 1 1.482463        1,2
+## 2 1.532784          1
 </code></pre></div></div>
 
 <p>According to this results the best model according to the lowest MSE is
