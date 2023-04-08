@@ -94,7 +94,7 @@ legend("bottomright", inset = 0.2,
 ```
 
 
-However, just as covered in week 6, we are making the assumption that the model residuals are independent. In reality, often neighbouring values display some correlation. If present, residual spatial autocorrelation violates the assumption made when applying GLMs. In [Week 4](../week-4) we covered how to test for spatial autocorrelation (clustering) using a neighborhood matrix. Such an approach is suitable for areal data where spatial relationships are often better modeled using adjacency as opposed to distances. We can apply the same approach using our model residuals to test for residual spatial autocorrelation of areal data.
+However, we are making the assumption that the model residuals are independent. In reality, often neighbouring values display some correlation. If present, residual spatial autocorrelation violates the assumption made when applying GLMs. In week 3 we covered how to test for spatial autocorrelation (clustering) using a neighborhood matrix. Such an approach is suitable for areal data where spatial relationships are often better modeled using adjacency as opposed to distances. We can apply the same approach using our model residuals to test for residual spatial autocorrelation of areal data.
 
 ```{r spatial_dep_test}
 # Contiguity neighbors - all that share a boundary point
@@ -129,7 +129,7 @@ nyc_car_mod <- fitme(CASES ~ PEXPOSURE + PCTOWNHOME + PCTAGE65P + adjacency(1|AR
 
 summary(nyc_car_mod)
 ```
-How has the inclusion of a spatial term affected our estimates? Remember from week 6, that if you want to generate 95% CIs of your estimates you can use the following code
+How has the inclusion of a spatial term affected our estimates? If you want to generate 95% CIs of your estimates you can use the following code
 
 ```{r}
 terms <- c('PEXPOSURE', 'PCTOWNHOME', 'PCTAGE65P')
