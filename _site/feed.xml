@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-04-03T08:19:36-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2023-04-08T10:40:10-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Applied Spatial Data Science for Public Health</title><subtitle>This site contains the labs for Applied Spatial Data Science for Public Health, a course at UC Berkeley's School of Public Health.</subtitle><entry><title type="html">Lab 2 - Spatial variation in risk</title><link href="http://localhost:4000/lab-2/" rel="alternate" type="text/html" title="Lab 2 - Spatial variation in risk" /><published>2023-03-09T00:00:00-08:00</published><updated>2023-03-09T00:00:00-08:00</updated><id>http://localhost:4000/lab-2</id><content type="html" xml:base="http://localhost:4000/lab-2/"><![CDATA[<p>This week we are going to explore methods to understand and predict risk
 across space from point data. These may be point level data
 (i.e. measurements of something of interest at particular points) or
 point process data (i.e. occurrences of events in a given area). When
@@ -3572,16 +3572,15 @@ plot fitted versus observed values.</p>
 
 <p><img src="../images/week-7/poisson_validation-2.png" alt="" /></p>
 
-<p>However, just as covered in week 6, we are making the assumption that
-the model residuals are independent. In reality, often neighbouring
-values display some correlation. If present, residual spatial
-autocorrelation violates the assumption made when applying GLMs. In
-<a href="../week-4">Week 4</a> we covered how to test for spatial autocorrelation
-(clustering) using a neighborhood matrix. Such an approach is suitable
-for areal data where spatial relationships are often better modeled
-using adjacency as opposed to distances. We can apply the same approach
-using our model residuals to test for residual spatial autocorrelation
-of areal data.</p>
+<p>However, we are making the assumption that the model residuals are
+independent. In reality, often neighbouring values display some
+correlation. If present, residual spatial autocorrelation violates the
+assumption made when applying GLMs. In week 3 we covered how to test for
+spatial autocorrelation (clustering) using a neighborhood matrix. Such
+an approach is suitable for areal data where spatial relationships are
+often better modeled using adjacency as opposed to distances. We can
+apply the same approach using our model residuals to test for residual
+spatial autocorrelation of areal data.</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Contiguity neighbors - all that share a boundary point</span><span class="w">
 </span><span class="n">sf</span><span class="o">::</span><span class="n">sf_use_s2</span><span class="p">(</span><span class="kc">FALSE</span><span class="p">)</span><span class="w">          </span><span class="c1">#allows poly2nb to work https://stackoverflow.com/questions/68478179/how-to-resolve-spherical-geometry-failures-when-joining-spatial-data</span><span class="w">
@@ -3599,10 +3598,11 @@ of areal data.</p>
 ## Warning in st_is_longlat(pl): bounding box has potentially an invalid value
 ## range for longlat data
 
-## Warning in st_is_longlat(x): bounding box has potentially an invalid value range
-## for longlat data
+## Warning in st_is_longlat(x): bounding box has potentially an invalid value
+## range for longlat data
 
-## although coordinates are longitude/latitude, st_intersects assumes that they are planar
+## although coordinates are longitude/latitude, st_intersects assumes that they
+## are planar
 </code></pre></div></div>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nydata_nb</span><span class="w">
@@ -3689,9 +3689,9 @@ each census tract).</p>
 ## logL       (p_v(h)): -471.4893
 </code></pre></div></div>
 
-<p>How has the inclusion of a spatial term affected our estimates? Remember
-from week 6, that if you want to generate 95% CIs of your estimates you
-can use the following code</p>
+<p>How has the inclusion of a spatial term affected our estimates? If you
+want to generate 95% CIs of your estimates you can use the following
+code</p>
 
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">terms</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'PEXPOSURE'</span><span class="p">,</span><span class="w"> </span><span class="s1">'PCTOWNHOME'</span><span class="p">,</span><span class="w"> </span><span class="s1">'PCTAGE65P'</span><span class="p">)</span><span class="w">
 </span><span class="n">coefs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as.data.frame</span><span class="p">(</span><span class="n">summary</span><span class="p">(</span><span class="n">nyc_car_mod</span><span class="p">)</span><span class="o">$</span><span class="n">beta_table</span><span class="p">)</span><span class="w">
